@@ -20,6 +20,7 @@ contract IRVVoting {
     error InvalidTime();
     error PollAlreadyFinalized();
     error NoVoteFound();
+    error InvalidMaxChoices();
 
     // -------------------------
     // EVENTS
@@ -57,6 +58,7 @@ contract IRVVoting {
         bool exists;
         bool publicViewable;
         bool finalized;
+        uint256 maxChoices;
         uint256 winnerIndex;
         Candidate[] candidates;
         address[] voters;
@@ -128,9 +130,11 @@ contract IRVVoting {
         address[] memory _auditors,
         uint256 _startTime,
         uint256 _endTime,
+        uint256 _maxChoices,
         bool _publicViewable
     ) external returns (uint256) {
         if (!isOrganization[msg.sender] && msg.sender != owner) revert AccessDenied();
+        if (_maxChoices == 0 || _maxChoices > _names.length) revert InvalidMaxChoices();
         if (_names.length == 0) revert InvalidCandidates();
 
         if (_names.length != _images.length || _names.length != _descriptions.length)
@@ -151,6 +155,7 @@ contract IRVVoting {
         p.exists = true;
         p.publicViewable = _publicViewable;
         p.voters = _voters;
+        p.maxChoices = _maxChoices;
 
         for (uint256 i = 0; i < _voters.length; i++) {
             isAllowedVoter[pollId][_voters[i]] = true;
@@ -279,6 +284,7 @@ contract IRVVoting {
         if (hasVoted[pollId][msg.sender]) revert AlreadyVoted();
 
         _validateRanking(ranking, p.candidates.length);
+        if (ranking.length > p.maxChoices) revert InvalidMaxChoices();
 
         hasVoted[pollId][msg.sender] = true;
         votes[pollId][msg.sender] = ranking;
@@ -400,6 +406,7 @@ contract IRVVoting {
             uint256 startTime,
             uint256 endTime,
             uint256 candidateCount,
+            uint256 maxChoices,
             bool publicViewable,
             PollState currentState
         )
@@ -410,6 +417,7 @@ contract IRVVoting {
             p.startTime,
             p.endTime,
             p.candidates.length,
+            p.maxChoices,
             p.publicViewable,
             _updateState(pollId)
         );
