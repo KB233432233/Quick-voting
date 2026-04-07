@@ -1,9 +1,10 @@
 import { Link } from "react-router";
-import { useWeb3 } from "../context/Web3Context";
+// import { useWeb3 } from "../context/Web3Context";
+import { useAccount } from 'wagmi';
 
 const Navbar = () => {
-    const { account } = useWeb3();
-
+    // const { account } = useWeb3();
+    const { address: account } = useAccount();
     const formatAddress = (addr) => {
         if (!addr) return "Connect Wallet";
         return `${addr.substring(0, 5)}...${addr.substring(addr.length - 4)}`;

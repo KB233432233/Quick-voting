@@ -1,15 +1,20 @@
-import React from 'react';
+import { useState } from 'react';
 import { Wallet, Mail, Activity, Clock, Copy, CheckCircle2 } from 'lucide-react';
 import Navbar from '../Components/Navbar';
 import ActivityItem from '../Components/ActivityItem';
 import StatCard from '../Components/StatCard';
-import { useWeb3 } from '../context/Web3Context';
 import ProfileHeader from '../Components/Profile/ProfileHeader';
 import ProfileIcon from '../Components/Profile/ProfileIcon';
+import { useWeb3AuthUser } from '@web3auth/modal/react';
+import { useAccount } from 'wagmi';
 
 function Profile() {
-    const [copied, setCopied] = React.useState(false);
-    const { account } = useWeb3();
+    const [copied, setCopied] = useState(false);
+    // const { account } = useWeb3();
+    const { address: account } = useAccount();
+    const { userInfo } = useWeb3AuthUser();
+
+    console.log(userInfo);
 
     const handleCopy = () => {
         navigator.clipboard.writeText(account);
@@ -31,9 +36,9 @@ function Profile() {
 
                             <ProfileIcon name={'KB'} email={'email@email.com'} />
 
-                            <h2 className="text-[20px] font-bold text-[#0B1527] mb-1 relative z-10">SatoshiN</h2>
+                            <h2 className="text-[20px] font-bold text-[#0B1527] mb-1 relative z-10">{userInfo.name}</h2>
                             <p className="text-[13px] text-[#64748B] mb-6 flex items-center gap-1.5 relative z-10">
-                                <Mail className="w-3.5 h-3.5" /> hello@example.com
+                                <Mail className="w-3.5 h-3.5" /> {userInfo.email}
                             </p>
 
                             <p className="text-[13px] text-[#64748B] mb-2 flex items-center gap-1.5 relative z-10">Wallet Address</p>
