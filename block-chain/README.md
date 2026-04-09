@@ -67,6 +67,10 @@ notes:
 5- Storing the "Candidate Descriptions" and "Images" on IPFS
 6- add other types of voting(single vote, points-based voting)
 
+Deploying IRVVoting to sepolia...
+Waiting for deployment...
+Contract address: 0x04d27bBaE19dfE113EE3da06d0CA891110aB1705
+
 
 
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.2",
