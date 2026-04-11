@@ -37,36 +37,3 @@ main().catch((error) => {
     process.exit(1);
 });
 
-
-////////////////////////////////////
-// this works with viem 30-3-2026//
-//////////////////////////////////
-
-// import { network } from "hardhat";
-
-// async function main() {
-//     const { viem } = await network.connect();
-
-//     // const client = await viem.getPublicClient();
-//     // const tx = await irvvoting.write.getUserRole([irvvoting.address]);
-//     // await client.waitForTransactionReceipt({ hash: tx, confirmations: 1 });
-
-//     const [deployer] = await viem.getWalletClients();
-//     const ownerAddress = deployer.account.address;
-//     console.log("Deployer address:", ownerAddress);
-
-//     const irvvoting = await viem.deployContract("IRVVoting");
-//     console.log("IRVVoting address:", irvvoting.address);
-
-//     const role = await irvvoting.read.getUserRole([ownerAddress]);
-//     console.log("User role:", role);
-
-//     console.log("Deployment successful!");
-// }
-
-// main().catch((error) => {
-//     console.error(error);
-//     process.exit(1);
-// });
-
-

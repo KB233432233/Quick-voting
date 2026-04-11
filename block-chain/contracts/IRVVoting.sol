@@ -27,18 +27,15 @@ contract IRVVoting {
     // -------------------------
     event PollCreated(
         uint256 indexed pollId,
-        address indexed admin,
+        address indexed creator,
         string title,
+        string[] candidateNames,
         uint256 startTime,
         uint256 endTime
     );
-    event VoteCast(
-        uint256 indexed pollId,
-        address indexed voter,
-        uint256[] ranking,
-        uint256 timestamp
-    );
+    event VoteCast(uint256 indexed pollId, address indexed voter, uint256 timestamp);
     event PollFinalized(uint256 indexed pollId, uint256 winnerIndex);
+    event RoundTally(uint256 indexed pollId, uint256 round, uint256[] voteCounts);
 
     // -------------------------
     // STORAGE
@@ -56,7 +53,6 @@ contract IRVVoting {
         uint256 startTime;
         uint256 endTime;
         bool exists;
-        bool publicViewable;
         bool finalized;
         uint256 maxChoices;
         uint256 winnerIndex;
@@ -71,7 +67,7 @@ contract IRVVoting {
 
     mapping(uint256 => mapping(address => bool)) public isAllowedVoter;
     mapping(uint256 => mapping(address => bool)) public hasVoted;
-    mapping(uint256 => mapping(address => uint256[])) private votes;
+    // mapping(uint256 => mapping(address => uint256[])) private votes;
     mapping(uint256 => address[]) private actualVoters; //??
     mapping(address => bool) public isAdmin;
     mapping(uint256 => mapping(address => bool)) public isAuditorForPoll;
@@ -79,6 +75,11 @@ contract IRVVoting {
     mapping(address => bool) public isAuditor;
     mapping(uint256 => address) public pollOrganization;
     mapping(address => uint256[]) private pollsByOrg;
+
+    struct Ballot {
+        uint256[] ranking;
+    }
+    mapping(uint256 => Ballot[]) private pollBallots;
 
     enum PollState {
         Created,
@@ -143,8 +144,7 @@ contract IRVVoting {
         VoteType _voteType,
         uint256 _startTime,
         uint256 _endTime,
-        uint256 _maxChoices,
-        bool _publicViewable
+        uint256 _maxChoices
     ) external returns (uint256) {
         if (!isOrganization[msg.sender] && msg.sender != owner) revert AccessDenied();
         if (_maxChoices == 0 || _maxChoices > _names.length) revert InvalidMaxChoices();
@@ -166,19 +166,22 @@ contract IRVVoting {
         p.startTime = _startTime;
         p.endTime = _endTime;
         p.exists = true;
-        p.publicViewable = _publicViewable;
-        p.voters = _voters;
+        // p.voters = _voters;
         p.voteType = _voteType;
 
         if (_voteType == VoteType.IRV) {
             p.maxChoices = _maxChoices;
-        } else if (p.voteType == VoteType.MAJORITY) {
+        } else if (_voteType == VoteType.MAJORITY) {
             p.maxChoices = 1;
         }
 
-        for (uint256 i = 0; i < _voters.length; i++) {
-            isAllowedVoter[pollId][_voters[i]] = true;
+        if (_voters.length > 0) {
+            _addVoters(pollId, _voters);
         }
+
+        // for (uint256 i = 0; i < _voters.length; i++) {
+        //     isAllowedVoter[pollId][_voters[i]] = true;
+        // }
 
         // for (uint256 i = 0; i < _names.length; i++) {
         //     p.candidates.push(Candidate(_names[i], _images[i], _descriptions[i]));
@@ -192,9 +195,26 @@ contract IRVVoting {
             isAuditorForPoll[pollId][_auditors[i]] = true;
         }
 
-        emit PollCreated(pollId, msg.sender, _title, _startTime, _endTime);
+        emit PollCreated(pollId, msg.sender, _title, _names, _startTime, _endTime);
         return pollId;
     }
+
+    function _addVoters(uint256 pollId, address[] memory voters) internal {
+    for (uint256 i = 0; i < voters.length; i++) {
+        isAllowedVoter[pollId][voters[i]] = true;
+    }
+}
+
+    function addVotersToWhitelist(uint256 pollId, address[] calldata newVoters) external {
+    // 1. Authorization: Only the creator can manage the whitelist
+    if (msg.sender != pollOrganization[pollId]) revert AccessDenied();
+    
+    // 2. Security: Only allow adding voters BEFORE the poll starts
+    if (_updateState(pollId) != PollState.Created) revert AccessDenied();
+
+    // 3. Execution: Add the batch
+    _addVoters(pollId, newVoters);
+}
 
     function deletePoll(uint256 pollId) external pollExists(pollId) {
         if (msg.sender != pollOrganization[pollId]) revert NotOrg();
@@ -308,175 +328,159 @@ contract IRVVoting {
     function vote(uint256 pollId, uint256[] calldata ranking) external pollExists(pollId) {
         Poll storage p = polls[pollId];
 
+        // 1. Security & State Checks
         if (_updateState(pollId) != PollState.Active) revert VotingEnded();
         if (isAuditor[msg.sender] || msg.sender == pollOrganization[pollId]) revert AccessDenied();
         if (p.voters.length > 0 && !isAllowedVoter[pollId][msg.sender]) revert NotAllowedVoter();
         if (hasVoted[pollId][msg.sender]) revert AlreadyVoted();
         if (ranking.length > p.maxChoices) revert InvalidMaxChoices();
 
+        // 2. Validate the content of the vote
         _validateRanking(ranking, p.candidates.length);
 
+        // 3. Mark the user as "Voted" (The "Who")
         hasVoted[pollId][msg.sender] = true;
-        votes[pollId][msg.sender] = ranking;
         actualVoters[pollId].push(msg.sender);
 
-        emit VoteCast(pollId, msg.sender, ranking, block.timestamp);
-    }
+        // 4. Store the ranking anonymously (The "What")
+        pollBallots[pollId].push(Ballot(ranking));
 
-    // -------------------------
-    // IRV WINNER LOGIC
-    // -------------------------
-
-    function _computeWinnerInternal(uint256 pollId) internal view returns (uint256) {
-        Poll storage p = polls[pollId];
-        address[] storage participants = actualVoters[pollId];
-
-        if (participants.length == 0) revert NoWinnerFound();
-
-        // Check which math to use
-        if (p.voteType == VoteType.MAJORITY) {
-            return _computeMajorityWinner(pollId);
-        } else {
-            return _computeIRVWinner(pollId);
-        }
-    }
-
-    function _computeIRVWinner(uint256 pollId) internal view returns (uint256) {
-        Poll storage p = polls[pollId];
-
-        uint256 candidateCount = p.candidates.length;
-        bool[] memory eliminated = new bool[](candidateCount);
-        uint256 remaining = candidateCount;
-
-        address[] storage participants = actualVoters[pollId];
-
-        while (remaining > 1) {
-            uint256[] memory voteCount = new uint256[](candidateCount);
-            uint256 activeVotes = 0;
-
-            // 1. Count current top-choice votes for non-eliminated candidates
-            for (uint256 i = 0; i < participants.length; i++) {
-                uint256[] memory ranking = votes[pollId][participants[i]];
-
-                for (uint256 j = 0; j < ranking.length; j++) {
-                    uint256 choice = ranking[j];
-
-                    if (!eliminated[choice]) {
-                        voteCount[choice]++;
-                        activeVotes++;
-                        break;
-                    }
-                }
-            }
-
-            // 2. Check if anyone has a majority ( > 50%)
-            for (uint256 i = 0; i < candidateCount; i++) {
-                if (!eliminated[i] && activeVotes > 0) {
-                    if (voteCount[i] * 2 > activeVotes) return i;
-                }
-            }
-
-            // 3. Find the minimum votes and handle ties for elimination
-            uint256 minVotes = type(uint256).max;
-            uint256[] memory tiedForMin = new uint256[](candidateCount);
-            uint256 tieCount = 0;
-
-            for (uint256 i = 0; i < candidateCount; i++) {
-                if (!eliminated[i]) {
-                    if (voteCount[i] < minVotes) {
-                        minVotes = voteCount[i];
-                        tiedForMin[0] = i;
-                        tieCount = 1;
-                    } else if (voteCount[i] == minVotes) {
-                        tiedForMin[tieCount] = i;
-                        tieCount++;
-                    }
-                }
-            }
-
-            // 4. Eliminate one candidate (Randomly if tied)
-            uint256 indexToEliminate;
-            if (tieCount > 1) {
-                // Use block data and pollId to create a pseudo-random seed
-                uint256 seed = uint256(
-                    keccak256(
-                        abi.encodePacked(block.timestamp, block.prevrandao, pollId, remaining)
-                    )
-                );
-                indexToEliminate = tiedForMin[seed % tieCount];
-            } else {
-                indexToEliminate = tiedForMin[0];
-            }
-
-            eliminated[indexToEliminate] = true;
-            remaining--;
-        }
-
-        // 5. If loop finishes, find the last one standing
-        for (uint256 i = 0; i < candidateCount; i++) {
-            if (!eliminated[i]) return i;
-        }
-
-        revert NoWinnerFound();
-    }
-
-    function _computeMajorityWinner(uint256 pollId) internal view returns (uint256) {
-        Poll storage p = polls[pollId];
-        uint256 candidateCount = p.candidates.length;
-        uint256[] memory voteCount = new uint256[](candidateCount);
-        address[] storage participants = actualVoters[pollId];
-
-        // 1. Tally first-choice votes
-        for (uint256 i = 0; i < participants.length; i++) {
-            uint256[] memory ranking = votes[pollId][participants[i]];
-            if (ranking.length > 0) {
-                voteCount[ranking[0]]++;
-            }
-        }
-
-        // 2. Find the highest vote count
-        uint256 maxVotes = 0;
-        for (uint256 i = 0; i < candidateCount; i++) {
-            if (voteCount[i] > maxVotes) {
-                maxVotes = voteCount[i];
-            }
-        }
-
-        // 3. Collect all candidates tied for that max count
-        uint256[] memory tiedForMax = new uint256[](candidateCount);
-        uint256 tieCount = 0;
-        for (uint256 i = 0; i < candidateCount; i++) {
-            if (voteCount[i] == maxVotes && maxVotes > 0) {
-                tiedForMax[tieCount] = i;
-                tieCount++;
-            }
-        }
-
-        if (tieCount == 0) revert NoWinnerFound();
-        if (tieCount == 1) return tiedForMax[0];
-
-        // 4. IRV-style Pseudo-random tie-breaker
-        uint256 seed = uint256(
-            keccak256(abi.encodePacked(block.timestamp, block.prevrandao, pollId, maxVotes))
-        );
-
-        return tiedForMax[seed % tieCount];
+        // 5. Emit Event
+        // NOTE: If you include 'ranking' here, it's public on the blockchain logs.
+        // If you want total privacy, remove 'ranking' from the event.
+        emit VoteCast(pollId, msg.sender, block.timestamp);
     }
 
     // -------------------------
     // FINALIZE
     // -------------------------
+
     function finalizePoll(uint256 pollId) external onlyAdminOrOwner pollExists(pollId) {
         if (_updateState(pollId) != PollState.Ended) revert VotingNotEnded();
-
         Poll storage p = polls[pollId];
         if (p.finalized) revert PollAlreadyFinalized();
 
-        uint256 winner = _computeWinnerInternal(pollId);
+        // 1. Get total number of ballots cast
+        uint256 totalBallots = pollBallots[pollId].length;
+        if (totalBallots == 0) revert NoWinnerFound();
+
+        uint256 winner;
+        uint256 candidateCount = p.candidates.length;
+
+        if (p.voteType == VoteType.MAJORITY) {
+            // --- MAJORITY LOGIC ---
+            uint256[] memory voteCount = new uint256[](candidateCount);
+
+            for (uint256 i = 0; i < totalBallots; i++) {
+                uint256[] memory ranking = pollBallots[pollId][i].ranking;
+                if (ranking.length > 0) {
+                    voteCount[ranking[0]]++;
+                }
+            }
+
+            emit RoundTally(pollId, 1, voteCount);
+
+            uint256 maxVotes = 0;
+            uint256 tieCount = 0;
+            uint256[] memory tied = new uint256[](candidateCount);
+
+            for (uint256 i = 0; i < candidateCount; i++) {
+                if (voteCount[i] > maxVotes) {
+                    maxVotes = voteCount[i];
+                    tied[0] = i;
+                    tieCount = 1;
+                } else if (voteCount[i] == maxVotes && maxVotes > 0) {
+                    tied[tieCount] = i;
+                    tieCount++;
+                }
+            }
+
+            if (tieCount > 1) {
+                uint256 seed = uint256(keccak256(abi.encodePacked(block.timestamp, pollId)));
+                winner = tied[seed % tieCount];
+            } else {
+                winner = tied[0];
+            }
+        } else {
+            // --- IRV Logic ---
+            bool[] memory eliminated = new bool[](candidateCount);
+            uint256 remaining = candidateCount;
+            uint256 roundIndex = 1;
+            bool winnerFound = false;
+
+            while (remaining > 1 && !winnerFound) {
+                uint256[] memory voteCount = new uint256[](candidateCount);
+                uint256 activeVotes = 0;
+
+                // Iterate through all ballots in the anonymous ballot box
+                for (uint256 i = 0; i < totalBallots; i++) {
+                    uint256[] memory ranking = pollBallots[pollId][i].ranking;
+                    for (uint256 j = 0; j < ranking.length; j++) {
+                        uint256 choice = ranking[j];
+                        if (!eliminated[choice]) {
+                            voteCount[choice]++;
+                            activeVotes++;
+                            break;
+                        }
+                    }
+                }
+
+                emit RoundTally(pollId, roundIndex, voteCount);
+
+                for (uint256 i = 0; i < candidateCount; i++) {
+                    if (!eliminated[i] && activeVotes > 0 && voteCount[i] * 2 > activeVotes) {
+                        winner = i;
+                        winnerFound = true;
+                        break;
+                    }
+                }
+
+                if (!winnerFound) {
+                    uint256 minVotes = type(uint256).max;
+                    uint256 tieCount = 0;
+                    uint256[] memory tiedForMin = new uint256[](candidateCount);
+
+                    for (uint256 i = 0; i < candidateCount; i++) {
+                        if (!eliminated[i]) {
+                            if (voteCount[i] < minVotes) {
+                                minVotes = voteCount[i];
+                                tiedForMin[0] = i;
+                                tieCount = 1;
+                            } else if (voteCount[i] == minVotes) {
+                                tiedForMin[tieCount] = i;
+                                tieCount++;
+                            }
+                        }
+                    }
+
+                    uint256 toElim;
+                    if (tieCount > 1) {
+                        uint256 seed = uint256(
+                            keccak256(abi.encodePacked(block.timestamp, pollId, roundIndex))
+                        );
+                        toElim = tiedForMin[seed % tieCount];
+                    } else {
+                        toElim = tiedForMin[0];
+                    }
+
+                    eliminated[toElim] = true;
+                    remaining--;
+                    roundIndex++;
+                }
+            }
+
+            if (!winnerFound) {
+                for (uint256 i = 0; i < candidateCount; i++) {
+                    if (!eliminated[i]) {
+                        winner = i;
+                        break;
+                    }
+                }
+            }
+        }
 
         p.winnerIndex = winner;
         p.finalized = true;
-
         emit PollFinalized(pollId, winner);
     }
 
@@ -494,7 +498,6 @@ contract IRVVoting {
             uint256 maxChoices,
             string[] memory candidateNames,
             address creator,
-            bool publicViewable,
             VoteType voteType,
             PollState currentState
         )
@@ -512,7 +515,6 @@ contract IRVVoting {
             p.maxChoices,
             names,
             pollOrganization[pollId],
-            p.publicViewable,
             p.voteType,
             _updateState(pollId)
         );
@@ -530,47 +532,39 @@ contract IRVVoting {
     // -------------------------
     function computeWinner(uint256 pollId) public view pollExists(pollId) returns (uint256) {
         Poll storage p = polls[pollId];
-
-        if (p.finalized) return p.winnerIndex;
-        if (_updateState(pollId) != PollState.Ended) revert VotingNotEnded();
-
-        return _computeWinnerInternal(pollId);
+        if (!p.finalized) revert VotingNotEnded();
+        return p.winnerIndex;
     }
 
     // -------------------------
     // GET MY VOTE
     // -------------------------
-    function getMyVote(uint256 pollId) external view pollExists(pollId) returns (uint256[] memory) {
-        if (!hasVoted[pollId][msg.sender]) revert NoVoteFound();
-        return votes[pollId][msg.sender];
-    }
+    // function getMyVote(uint256 pollId) external view pollExists(pollId) returns (uint256[] memory) {
+    //     if (!hasVoted[pollId][msg.sender]) revert NoVoteFound();
+    //     return votes[pollId][msg.sender];
+    // }
 
     // -------------------------
     // GET ALL VOTES (AUDITOR OR OWNER OR PUBLIC)
     // -------------------------
 
     //??
-    function getVotes(
-        uint256 pollId
-    ) external view pollExists(pollId) returns (address[] memory, uint256[][] memory) {
-        Poll storage p = polls[pollId];
-        PollState state = _updateState(pollId);
-
-        if (state != PollState.Ended) revert VotingNotEnded();
-        if (!p.publicViewable && msg.sender != owner && !isAuditorForPoll[pollId][msg.sender]) {
-            revert AccessDenied();
-        }
-
-        address[] memory users = actualVoters[pollId];
-        uint256[][] memory allRankings = new uint256[][](users.length);
-
-        for (uint256 i = 0; i < users.length; i++) {
-            allRankings[i] = votes[pollId][users[i]];
-        }
-
-        return (users, allRankings);
+   function getVotes(uint256 pollId) external view pollExists(pollId) returns (uint256[][] memory) {
+    if (_updateState(pollId) != PollState.Ended) revert VotingNotEnded();
+    
+    // Authorization check
+    if (msg.sender != owner && !isAuditorForPoll[pollId][msg.sender]) {
+        revert AccessDenied();
     }
 
+    uint256 ballotCount = pollBallots[pollId].length;
+    uint256[][] memory allRankings = new uint256[][](ballotCount);
+
+    for (uint256 i = 0; i < ballotCount; i++) {
+        allRankings[i] = pollBallots[pollId][i].ranking;
+    }
+    return allRankings;
+}
     // -------------------------
     // AUDITOR CHECK
     // -------------------------
