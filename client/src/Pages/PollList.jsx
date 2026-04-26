@@ -1,9 +1,64 @@
-import { Zap, Clock, CheckCircle2, Rocket, Box, Timer, Calendar, BarChart3, Vote } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useWeb3Auth } from '@web3auth/modal/react';
+import { Zap, Clock, CheckCircle2, Rocket, BarChart3 } from 'lucide-react';
 import Navbar from '../Components/Navbar';
 import PollCard from '../Components/PollList/PollCard';
 import SectionHeader from '../Components/PollList/SectionHeader';
+import { getPollsFromChain, getPollDetailsFromChain } from '../hooks/ReadFromChain';
+import { Link } from 'react-router';
 
 function PollList() {
+  const [polls, setPolls] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [connectionStatus, setConnectionStatus] = useState("disconnected");
+  const { provider } = useWeb3Auth();
+
+  useEffect(() => {
+    const fetchAllPolls = async () => {
+      try {
+        setLoading(true);
+        setConnectionStatus("connecting");
+        
+        // Fetch all IDs using our abstracted hook
+        const allPollIds = await getPollsFromChain(provider);
+        setConnectionStatus("connected");
+        
+        // Fetch details for each ID Using our abstracted hook
+        const pollsData = await Promise.all(
+          allPollIds.map(async (id) => {
+            const details = await getPollDetailsFromChain(provider, id);
+            return {
+              id: id.toString(),
+              title: details.title,
+              startTime: details.startTime * 1000, // Convert seconds to ms
+              endTime: details.endTime * 1000,
+              candidateCount: details.candidateCount,
+              maxChoices: details.maxChoices,
+              candidateNames: details.candidateNames,
+              creator: details.creator,
+            };
+          })
+        );
+
+        setPolls(pollsData);
+      } catch (err) {
+        console.error("Failed to connect or fetch polls:", err);
+        setConnectionStatus("error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllPolls();
+  }, [provider]);
+
+  const now = Date.now();
+  const activePolls = polls.filter(p => now >= p.startTime && now <= p.endTime);
+  const upcomingPolls = polls.filter(p => now < p.startTime);
+  const closedPolls = polls.filter(p => now > p.endTime);
+
+  const formatDate = (ts) => new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
   return (
     <div className="min-h-screen bg-[#F4F6FB] font-sans pb-24 text-slate-800 selection:bg-[#1D58E9]/20 selection:text-[#1D58E9]">
       <Navbar />
@@ -16,83 +71,91 @@ function PollList() {
           </p>
         </div>
 
-        <div className="space-y-12">
-          {/* Active Polls */}
-          <section>
-            <SectionHeader
-              icon={Zap}
-              title="Active Polls"
-              badge="2 Active"
-              iconColor="text-[#1D58E9]"
-            />
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              <PollCard
-                status="active"
-                title="Community Fund Allocation Q3"
-                description="Rank your top preferences for the Q3 community fund allocation. Options include new parks, library upgrades..."
-                timeRemaining="12h 45m remaining"
-                imageClass="bg-[#0f3d32] bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.3),transparent)]"
-              />
-              <PollCard
-                status="active"
-                title="Emergency Security Patch"
-                description="Prioritize the deployment of security patches. Rank v4.2.1 and v4.3.0 based on urgency and risk..."
-                timeRemaining="04h 12m remaining"
-                imageClass="bg-[#0f172a] bg-[radial-gradient(ellipse_at_top,rgba(71,85,105,0.4),transparent)]"
-              />
-            </div>
-          </section>
-
-          {/* Upcoming Polls */}
-          <section>
-            <SectionHeader
-              icon={Clock}
-              title="Upcoming Polls"
-              iconColor="text-[#64748B]"
-            />
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              <PollCard
-                status="upcoming"
-                icon={Rocket}
-                title="Protocol Upgrade v2.0"
-                description="Prepare to rank the features for Protocol Upgrade v2.0. Decide between staking rewards, gas..."
-                timeRemaining="Starts in 2 days (Oct 24)"
-              />
-              <PollCard
-                status="upcoming"
-                icon={Box}
-                title="Token Burn Event"
-                description="Rank your preferred token burn strategy: 1% immediate, 5% over time, or dynamic burn based..."
-                timeRemaining="Starts Nov 01"
-              />
-            </div>
-          </section>
-
-          {/* Closed Polls */}
-          <section>
-            <SectionHeader
-              icon={CheckCircle2}
-              title="Closed Polls"
-              iconColor="text-[#64748B]"
-            />
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              <PollCard
-                status="closed"
-                icon={BarChart3}
-                title="Governance Proposal #42"
-                description="See how the community ranked the quorum requirement options for future governance votes."
-                timeRemaining="Ended Oct 12"
-              />
-              <PollCard
-                status="closed"
-                icon={Vote}
-                title="UI Theme Selection"
-                description="View the final rankings of the community-submitted color palettes for the new dark mode interface."
-                timeRemaining="Ended Sep 28"
-              />
-            </div>
-          </section>
+        {/* Temporary Developer Helper */}
+        <div className="mb-4 text-xs font-mono p-3 bg-white rounded border border-gray-200">
+            <strong>Connection Status:</strong> 
+            <span className={`ml-2 px-2 py-1 rounded ${
+              connectionStatus === 'connected' ? 'bg-green-100 text-green-800' :
+              connectionStatus === 'error' ? 'bg-red-100 text-red-800' :
+              connectionStatus === 'connecting' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-gray-100 text-gray-800'
+            }`}>
+              {connectionStatus.toUpperCase()}
+            </span>
         </div>
+
+        {loading ? (
+          <div className="text-center py-10 text-[#64748B]">Loading polls from the blockchain...</div>
+        ) : (
+          <div className="space-y-12">
+            {/* Active Polls */}
+            <section>
+              <SectionHeader
+                icon={Zap}
+                title="Active Polls"
+                badge={`${activePolls.length} Active`}
+                iconColor="text-[#1D58E9]"
+              />
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {activePolls.length > 0 ? activePolls.map(poll => (
+                  <PollCard
+                    key={poll.id}
+                    id={poll.id}
+                    status="active"
+                    title={poll.title}
+                    description={`Candidates: ${poll.candidateNames.join(', ')}. Max choices: ${poll.maxChoices}`}
+                    timeRemaining={`Ends ${formatDate(poll.endTime)}`}
+                    imageClass="bg-[#0f172a] bg-[radial-gradient(ellipse_at_top,rgba(71,85,105,0.4),transparent)]"
+                  />
+                )) : <p className="text-[#64748B] text-sm">No active polls found.</p>}
+              </div>
+            </section>
+
+            {/* Upcoming Polls */}
+            <section>
+              <SectionHeader
+                icon={Clock}
+                title="Upcoming Polls"
+                iconColor="text-[#64748B]"
+              />
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {upcomingPolls.length > 0 ? upcomingPolls.map(poll => (
+                  <PollCard
+                    key={poll.id}
+                    id={poll.id}
+                    status="upcoming"
+                    icon={Rocket}
+                    title={poll.title}
+                    description={`Candidates: ${poll.candidateNames.join(', ')}`}
+                    timeRemaining={`Starts ${formatDate(poll.startTime)}`}
+                  />
+                )) : <p className="text-[#64748B] text-sm">No upcoming polls.</p>}
+              </div>
+            </section>
+
+            {/* Closed Polls */}
+            <section>
+              <SectionHeader
+                icon={CheckCircle2}
+                title="Closed Polls"
+                iconColor="text-[#64748B]"
+              />
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {closedPolls.length > 0 ? closedPolls.map(poll => (
+                  <PollCard
+                    key={poll.id}
+                    id={poll.id}
+                    status="closed"
+                    icon={BarChart3}
+                    title={poll.title}
+                    description={`Candidates: ${poll.candidateNames.join(', ')}`}
+                    timeRemaining={`Ended ${formatDate(poll.endTime)}`}
+                  />
+                )) : <p className="text-[#64748B] text-sm">No closed polls yet.</p>}
+              </div>
+            </section>
+          </div>
+        )}
       </main>
     </div>
   );

@@ -26,19 +26,19 @@ function Profile() {
         <div className="min-h-screen bg-[#F4F6FB] font-sans pb-24 text-slate-800 selection:bg-[#1D58E9]/20 selection:text-[#1D58E9]">
             <Navbar />
 
-            <main className="max-w-[1000px] mx-auto px-6 pt-12">
+            <main className="max-w-250 mx-auto px-6 pt-12">
                 <ProfileHeader isVoter={false} />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-white rounded-[24px] border border-slate-100 p-6 flex flex-col items-center shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-[#1D58E9]/10 to-transparent"></div>
+                        <div className="bg-white rounded-3xl border border-slate-100 p-6 flex flex-col items-center shadow-sm relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-32 bg-linear-to-br from-[#1D58E9]/10 to-transparent"></div>
 
                             <ProfileIcon name={'KB'} email={'email@email.com'} />
 
-                            <h2 className="text-[20px] font-bold text-[#0B1527] mb-1 relative z-10">{userInfo.name}</h2>
+                            <h2 className="text-[20px] font-bold text-[#0B1527] mb-1 relative z-10">{'userInfo.name'}</h2>
                             <p className="text-[13px] text-[#64748B] mb-6 flex items-center gap-1.5 relative z-10">
-                                <Mail className="w-3.5 h-3.5" /> {userInfo.email}
+                                <Mail className="w-3.5 h-3.5" /> {'userInfo.email'}
                             </p>
 
                             <p className="text-[13px] text-[#64748B] mb-2 flex items-center gap-1.5 relative z-10">Wallet Address</p>

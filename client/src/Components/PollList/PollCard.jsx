@@ -8,6 +8,7 @@ const PollCard = ({
   timeRemaining,
   imageClass,
   icon: Icon,
+  id
 }) => {
 
   const textColor = {
@@ -48,13 +49,13 @@ const PollCard = ({
             <span className={`text-[12px] font-bold ${textColor[status]} tracking-tight`}>{timeRemaining}</span>
           </div>
           {status === 'active' ?
-            <Link to={`/poll/1`} className="w-full bg-[#1D58E9] hover:bg-[#1546C6] text-white font-semibold text-[14px] py-3 rounded-xl transition-colors shadow-sm flex items-center justify-center">
+            <Link to={`/poll/${id}`} className="w-full bg-[#1D58E9] hover:bg-[#1546C6] text-white font-semibold text-[14px] py-3 rounded-xl transition-colors shadow-sm flex items-center justify-center">
               Rank & Vote
             </Link> : status === 'upcoming' ?
               <button disabled className="w-full bg-[#F1F5F9] text-[#94A3B8] font-bold text-[14px] py-3 rounded-xl cursor-not-allowed border border-[#E2E8F0]/50">
                 Not Started
               </button> : status === 'closed' ?
-                <Link to="/poll/1/results" className="w-full inline-block text-center bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#0B1527] font-bold text-[14px] py-3 rounded-xl transition-colors shadow-sm">
+                <Link to={`/poll/${id}/results`} className="w-full inline-block text-center bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#0B1527] font-bold text-[14px] py-3 rounded-xl transition-colors shadow-sm">
                   View Results
                 </Link> : null
           }

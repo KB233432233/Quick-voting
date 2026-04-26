@@ -15,7 +15,7 @@ const Navbar = () => {
             <div className="flex items-center gap-8">
                 <Link to="/pollList" className="flex items-center gap-3 text-slate-900 font-bold text-lg">
                     <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
-                        <img src="/logo.jpg" />
+                        <img className="bg-white" src="/logo.png" />
                     </div>
                     Quick
                 </Link>
