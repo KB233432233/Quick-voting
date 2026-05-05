@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-contract IRVVoting {
+import "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
+
+contract IRVVoting is AutomationCompatibleInterface {
     // -------------------------
     // ERRORS
     // -------------------------
@@ -10,6 +12,7 @@ contract IRVVoting {
     error PollDoesNotExist();
     error VotingNotStarted();
     error VotingEnded();
+    error VotingIsActive();
     error VotingNotEnded();
     error InvalidCandidates();
     error InvalidRanking();
@@ -42,12 +45,6 @@ contract IRVVoting {
     // -------------------------
     address public owner;
 
-    struct Candidate {
-        string name;
-        // string image;
-        // string description;
-    }
-
     struct Poll {
         string title;
         uint256 startTime;
@@ -57,8 +54,8 @@ contract IRVVoting {
         uint256 maxChoices;
         uint256 winnerIndex;
         VoteType voteType;
-        Candidate[] candidates;
-        address[] voters;
+        string[] candidates;
+        bool whitelistEnabled;
     }
 
     uint256 public pollCount;
@@ -67,8 +64,7 @@ contract IRVVoting {
 
     mapping(uint256 => mapping(address => bool)) public isAllowedVoter;
     mapping(uint256 => mapping(address => bool)) public hasVoted;
-    // mapping(uint256 => mapping(address => uint256[])) private votes;
-    mapping(uint256 => address[]) private actualVoters; //??
+    mapping(uint256 => address[]) private actualVoters;
     mapping(address => bool) public isAdmin;
     mapping(uint256 => mapping(address => bool)) public isAuditorForPoll;
     mapping(address => bool) public isOrganization;
@@ -137,9 +133,7 @@ contract IRVVoting {
     function createPoll(
         string memory _title,
         address[] memory _voters,
-        string[] memory _names,
-        // string[] memory _images,
-        // string[] memory _descriptions,
+        string[] memory _candidates,
         address[] memory _auditors,
         VoteType _voteType,
         uint256 _startTime,
@@ -147,12 +141,8 @@ contract IRVVoting {
         uint256 _maxChoices
     ) external returns (uint256) {
         if (!isOrganization[msg.sender] && msg.sender != owner) revert AccessDenied();
-        if (_maxChoices == 0 || _maxChoices > _names.length) revert InvalidMaxChoices();
-        if (_names.length == 0) revert InvalidCandidates();
-
-        // if (_names.length != _images.length || _names.length != _descriptions.length)
-        //     revert InvalidCandidates();
-
+        if (_maxChoices == 0 || _maxChoices > _candidates.length) revert InvalidMaxChoices();
+        if (_candidates.length == 0) revert InvalidCandidates();
         if (_startTime >= _endTime) revert InvalidTime();
 
         uint256 pollId = pollCount++;
@@ -166,7 +156,6 @@ contract IRVVoting {
         p.startTime = _startTime;
         p.endTime = _endTime;
         p.exists = true;
-        // p.voters = _voters;
         p.voteType = _voteType;
 
         if (_voteType == VoteType.IRV) {
@@ -176,18 +165,12 @@ contract IRVVoting {
         }
 
         if (_voters.length > 0) {
+            p.whitelistEnabled = true;
             _addVoters(pollId, _voters);
         }
 
-        // for (uint256 i = 0; i < _voters.length; i++) {
-        //     isAllowedVoter[pollId][_voters[i]] = true;
-        // }
-
-        // for (uint256 i = 0; i < _names.length; i++) {
-        //     p.candidates.push(Candidate(_names[i], _images[i], _descriptions[i]));
-        // }
-        for (uint256 i = 0; i < _names.length; i++) {
-            p.candidates.push(Candidate(_names[i]));
+        for (uint256 i = 0; i < _candidates.length; i++) {
+            p.candidates.push(_candidates[i]);
         }
 
         for (uint256 i = 0; i < _auditors.length; i++) {
@@ -195,32 +178,31 @@ contract IRVVoting {
             isAuditorForPoll[pollId][_auditors[i]] = true;
         }
 
-        emit PollCreated(pollId, msg.sender, _title, _names, _startTime, _endTime);
+        emit PollCreated(pollId, msg.sender, _title, _candidates, _startTime, _endTime);
         return pollId;
     }
 
     function _addVoters(uint256 pollId, address[] memory voters) internal {
-    for (uint256 i = 0; i < voters.length; i++) {
-        isAllowedVoter[pollId][voters[i]] = true;
+        for (uint256 i = 0; i < voters.length; i++) {
+            isAllowedVoter[pollId][voters[i]] = true;
+        }
     }
-}
 
-    function addVotersToWhitelist(uint256 pollId, address[] calldata newVoters) external {
-    // 1. Authorization: Only the creator can manage the whitelist
-    if (msg.sender != pollOrganization[pollId]) revert AccessDenied();
-    
-    // 2. Security: Only allow adding voters BEFORE the poll starts
-    if (_updateState(pollId) != PollState.Created) revert AccessDenied();
-
-    // 3. Execution: Add the batch
-    _addVoters(pollId, newVoters);
-}
+    function addVotersToWhitelist(
+        uint256 pollId,
+        address[] calldata newVoters
+    ) external pollExists(pollId) {
+        if (msg.sender != pollOrganization[pollId]) revert AccessDenied();
+        if (_updateState(pollId) != PollState.Created) revert AccessDenied();
+        Poll storage p = polls[pollId];
+        p.whitelistEnabled = true;
+        _addVoters(pollId, newVoters);
+    }
 
     function deletePoll(uint256 pollId) external pollExists(pollId) {
         if (msg.sender != pollOrganization[pollId]) revert NotOrg();
         if (_updateState(pollId) != PollState.Created) revert AccessDenied();
 
-        // remove from org list
         uint256[] storage orgPolls = pollsByOrg[pollOrganization[pollId]];
         for (uint256 i = 0; i < orgPolls.length; i++) {
             if (orgPolls[i] == pollId) {
@@ -230,7 +212,6 @@ contract IRVVoting {
             }
         }
 
-        // remove from global list
         for (uint256 i = 0; i < allPollIds.length; i++) {
             if (allPollIds[i] == pollId) {
                 allPollIds[i] = allPollIds[allPollIds.length - 1];
@@ -257,6 +238,8 @@ contract IRVVoting {
 
     function addAdmin(address user) external onlyOwner {
         isAdmin[user] = true;
+        isAuditor[user] = false;
+        isOrganization[user] = false;
     }
 
     function removeAdmin(address user) external onlyOwner {
@@ -265,6 +248,8 @@ contract IRVVoting {
 
     function addAuditor(address user) external onlyAdminOrOwner {
         isAuditor[user] = true;
+        isAdmin[user] = false;
+        isOrganization[user] = false;
     }
 
     function removeAuditor(address user) external onlyAdminOrOwner {
@@ -276,7 +261,7 @@ contract IRVVoting {
         address auditor
     ) external onlyAdminOrOwner pollExists(pollId) {
         if (_updateState(pollId) != PollState.Created) revert AccessDenied();
-        if (!isAuditor[auditor]) revert AccessDenied(); // 🔥 important
+        if (!isAuditor[auditor]) revert AccessDenied();
 
         isAuditorForPoll[pollId][auditor] = true;
     }
@@ -291,6 +276,8 @@ contract IRVVoting {
 
     function addOrganization(address user) external onlyAdminOrOwner {
         isOrganization[user] = true;
+        isAdmin[user] = false;
+        isAuditor[user] = false;
     }
 
     function removeOrganization(address user) external onlyAdminOrOwner {
@@ -328,26 +315,19 @@ contract IRVVoting {
     function vote(uint256 pollId, uint256[] calldata ranking) external pollExists(pollId) {
         Poll storage p = polls[pollId];
 
-        // 1. Security & State Checks
-        if (_updateState(pollId) != PollState.Active) revert VotingEnded();
+        if (_updateState(pollId) != PollState.Active) revert VotingIsActive();
         if (isAuditor[msg.sender] || msg.sender == pollOrganization[pollId]) revert AccessDenied();
-        if (p.voters.length > 0 && !isAllowedVoter[pollId][msg.sender]) revert NotAllowedVoter();
+        if (p.whitelistEnabled && !isAllowedVoter[pollId][msg.sender]) revert NotAllowedVoter();
         if (hasVoted[pollId][msg.sender]) revert AlreadyVoted();
         if (ranking.length > p.maxChoices) revert InvalidMaxChoices();
 
-        // 2. Validate the content of the vote
         _validateRanking(ranking, p.candidates.length);
 
-        // 3. Mark the user as "Voted" (The "Who")
         hasVoted[pollId][msg.sender] = true;
-        actualVoters[pollId].push(msg.sender);
+        actualVoters[pollId].push(msg.sender); //this is for auditing
 
-        // 4. Store the ranking anonymously (The "What")
         pollBallots[pollId].push(Ballot(ranking));
 
-        // 5. Emit Event
-        // NOTE: If you include 'ranking' here, it's public on the blockchain logs.
-        // If you want total privacy, remove 'ranking' from the event.
         emit VoteCast(pollId, msg.sender, block.timestamp);
     }
 
@@ -355,12 +335,14 @@ contract IRVVoting {
     // FINALIZE
     // -------------------------
 
-    function finalizePoll(uint256 pollId) external onlyAdminOrOwner pollExists(pollId) {
+    function finalizePoll(uint256 pollId) public pollExists(pollId) {
+        if (msg.sender != owner && !isAdmin[msg.sender] && msg.sender != address(this)) {
+            revert AccessDenied();
+        }
         if (_updateState(pollId) != PollState.Ended) revert VotingNotEnded();
         Poll storage p = polls[pollId];
         if (p.finalized) revert PollAlreadyFinalized();
 
-        // 1. Get total number of ballots cast
         uint256 totalBallots = pollBallots[pollId].length;
         if (totalBallots == 0) revert NoWinnerFound();
 
@@ -412,7 +394,6 @@ contract IRVVoting {
                 uint256[] memory voteCount = new uint256[](candidateCount);
                 uint256 activeVotes = 0;
 
-                // Iterate through all ballots in the anonymous ballot box
                 for (uint256 i = 0; i < totalBallots; i++) {
                     uint256[] memory ranking = pollBallots[pollId][i].ranking;
                     for (uint256 j = 0; j < ranking.length; j++) {
@@ -484,6 +465,35 @@ contract IRVVoting {
         emit PollFinalized(pollId, winner);
     }
 
+    // -------------------------
+    // CHAINLINK AUTOMATION
+    // -------------------------
+
+    function checkUpkeep(
+        bytes calldata /* checkData */
+    ) external view override returns (bool upkeepNeeded, bytes memory performData) {
+        for (uint256 i = 0; i < pollCount; i++) {
+            Poll storage p = polls[i];
+
+            if (p.exists && !p.finalized && block.timestamp >= p.endTime) {
+                return (true, abi.encode(i));
+            }
+        }
+        return (false, "");
+    }
+
+    function performUpkeep(bytes calldata performData) external override {
+        uint256 pollId = abi.decode(performData, (uint256));
+
+        Poll storage p = polls[pollId];
+        if (p.exists && !p.finalized && block.timestamp >= p.endTime) {
+            // We call your existing finalize logic
+            // NOTE: Since finalizePoll has onlyAdminOrOwner, you should //??
+            // either remove that modifier or allow this contract to call itself.
+            this.finalizePoll(pollId);
+        }
+    }
+
     function getPollDetails(
         uint256 pollId
     )
@@ -505,7 +515,7 @@ contract IRVVoting {
         Poll storage p = polls[pollId];
         string[] memory names = new string[](p.candidates.length);
         for (uint256 i = 0; i < p.candidates.length; i++) {
-            names[i] = p.candidates[i].name;
+            names[i] = p.candidates[i];
         }
         return (
             p.title,
@@ -537,34 +547,28 @@ contract IRVVoting {
     }
 
     // -------------------------
-    // GET MY VOTE
-    // -------------------------
-    // function getMyVote(uint256 pollId) external view pollExists(pollId) returns (uint256[] memory) {
-    //     if (!hasVoted[pollId][msg.sender]) revert NoVoteFound();
-    //     return votes[pollId][msg.sender];
-    // }
-
-    // -------------------------
     // GET ALL VOTES (AUDITOR OR OWNER OR PUBLIC)
     // -------------------------
 
-    //??
-   function getVotes(uint256 pollId) external view pollExists(pollId) returns (uint256[][] memory) {
-    if (_updateState(pollId) != PollState.Ended) revert VotingNotEnded();
-    
-    // Authorization check
-    if (msg.sender != owner && !isAuditorForPoll[pollId][msg.sender]) {
-        revert AccessDenied();
+    function getVotes(
+        uint256 pollId
+    ) external view pollExists(pollId) returns (uint256[][] memory) {
+        if (_updateState(pollId) != PollState.Ended && _updateState(pollId) != PollState.Finalized)
+            revert VotingNotEnded();
+
+        if (msg.sender != owner && !isAuditorForPoll[pollId][msg.sender]) {
+            revert AccessDenied();
+        }
+
+        uint256 ballotCount = pollBallots[pollId].length;
+        uint256[][] memory allRankings = new uint256[][](ballotCount);
+
+        for (uint256 i = 0; i < ballotCount; i++) {
+            allRankings[i] = pollBallots[pollId][i].ranking;
+        }
+        return allRankings;
     }
 
-    uint256 ballotCount = pollBallots[pollId].length;
-    uint256[][] memory allRankings = new uint256[][](ballotCount);
-
-    for (uint256 i = 0; i < ballotCount; i++) {
-        allRankings[i] = pollBallots[pollId][i].ranking;
-    }
-    return allRankings;
-}
     // -------------------------
     // AUDITOR CHECK
     // -------------------------

@@ -63,13 +63,69 @@ notes:
 1- off chain finalizing for gas problems
 2- make it gasless(meta tx, ERC 2771)
 3- use chainlink and upkeep to finalize automaticlly
-4- hash votes
-5- Storing the "Candidate Descriptions" and "Images" on IPFS
-6- add other types of voting(single vote, points-based voting)
+4- blind sig
+
+add org
+import { ethers } from "ethers";
+
+const CONTRACT_ADDRESS = "0x64B366a05827fE8289e93Ae10109ca0581ebb894";
+const RPC_URL = "https://sepolia.infura.io/v3/bc605433bf354b83a87269063fd5aa97";
+const PRIVATE_KEY = "9efb9c489ec960760e5adb1bcde1dd84a8210ed350583b5c6741bea4f55fdfe3";
+const NEW_ORGANIZATION = "0x145cec381eb759B0a0cC5D1EA299b229D4280899";
+
+const ABI = [{
+    "inputs": [{
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+    }],
+    "name": "addOrganization",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+}];
+
+async function main() {
+    const provider = new ethers.JsonRpcProvider(RPC_URL);
+    const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, wallet);
+
+    console.log(`Adding ${NEW_ORGANIZATION} as organization...`);
+    const tx = await contract.addOrganization(NEW_ORGANIZATION);
+    console.log("Transaction sent:", tx.hash);
+    await tx.wait();
+    console.log("✅ Organization added successfully!");
+}
+
+main().catch(console.error);
 
 Deploying IRVVoting to sepolia...
 Waiting for deployment...
 Contract address: 0x04d27bBaE19dfE113EE3da06d0CA891110aB1705
+
+15-4-2026
+Deploying IRVVoting to sepolia...
+Waiting for deployment...
+Contract address: 0x64B366a05827fE8289e93Ae10109ca0581ebb894
+User role: Owner
+Gas used: 2177496
+Deployment successful!
+
+2-5-2026 after chainlink upkeep
+Deploying IRVVoting to sepolia...
+Waiting for deployment...
+Contract address: 0x1ea940Ef1d39ED8a2E037b3E6d5A685bFe2B7c72
+User role: Owner
+Gas used: 2368121
+Deployment successful!
+
+5-5-2026 added chainlink upkeep, and fixed some logical errors
+Deploying IRVVoting to sepolia...
+Waiting for deployment...
+Contract address: 0xA24EB41dF502e0C9C18d31FF8218a3AEa4F94AF0
+User role: Owner
+Gas used: 2313435
+Deployment successful!
 
 
 
