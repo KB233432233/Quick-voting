@@ -12,7 +12,7 @@ contract IRVVoting is AutomationCompatibleInterface {
     error PollDoesNotExist();
     error VotingNotStarted();
     error VotingEnded();
-    error VotingIsActive();
+    error VotingIsNotActive();
     error VotingNotEnded();
     error InvalidCandidates();
     error InvalidRanking();
@@ -37,6 +37,7 @@ contract IRVVoting is AutomationCompatibleInterface {
         uint256 endTime
     );
     event VoteCast(uint256 indexed pollId, address indexed voter, uint256 timestamp);
+    event PollStarted(uint256 indexed pollId, uint256 startTime);
     event PollFinalized(uint256 indexed pollId, uint256 winnerIndex);
     event RoundTally(uint256 indexed pollId, uint256 round, uint256[] voteCounts);
 
@@ -56,6 +57,7 @@ contract IRVVoting is AutomationCompatibleInterface {
         VoteType voteType;
         string[] candidates;
         bool whitelistEnabled;
+        address[] auditors;
     }
 
     uint256 public pollCount;
@@ -66,9 +68,9 @@ contract IRVVoting is AutomationCompatibleInterface {
     mapping(uint256 => mapping(address => bool)) public hasVoted;
     mapping(uint256 => address[]) private actualVoters;
     mapping(address => bool) public isAdmin;
-    mapping(uint256 => mapping(address => bool)) public isAuditorForPoll;
     mapping(address => bool) public isOrganization;
     mapping(address => bool) public isAuditor;
+    mapping(uint256 => bool) public pollStarted;
     mapping(uint256 => address) public pollOrganization;
     mapping(address => uint256[]) private pollsByOrg;
 
@@ -87,6 +89,11 @@ contract IRVVoting is AutomationCompatibleInterface {
     enum VoteType {
         IRV,
         MAJORITY
+    }
+
+    enum UpkeepAction {
+        EmitPollStarted,
+        FinalizePoll
     }
 
     constructor() {
@@ -134,7 +141,6 @@ contract IRVVoting is AutomationCompatibleInterface {
         string memory _title,
         address[] memory _voters,
         string[] memory _candidates,
-        address[] memory _auditors,
         VoteType _voteType,
         uint256 _startTime,
         uint256 _endTime,
@@ -171,11 +177,6 @@ contract IRVVoting is AutomationCompatibleInterface {
 
         for (uint256 i = 0; i < _candidates.length; i++) {
             p.candidates.push(_candidates[i]);
-        }
-
-        for (uint256 i = 0; i < _auditors.length; i++) {
-            if (!isAuditor[_auditors[i]]) revert AccessDenied();
-            isAuditorForPoll[pollId][_auditors[i]] = true;
         }
 
         emit PollCreated(pollId, msg.sender, _title, _candidates, _startTime, _endTime);
@@ -256,22 +257,22 @@ contract IRVVoting is AutomationCompatibleInterface {
         isAuditor[user] = false;
     }
 
-    function assignAuditorToPoll(
-        uint256 pollId,
-        address auditor
-    ) external onlyAdminOrOwner pollExists(pollId) {
-        if (_updateState(pollId) != PollState.Created) revert AccessDenied();
-        if (!isAuditor[auditor]) revert AccessDenied();
-
-        isAuditorForPoll[pollId][auditor] = true;
+    function _maybeEmitPollStarted(uint256 pollId) internal {
+        if (!pollStarted[pollId] && _updateState(pollId) == PollState.Active) {
+            pollStarted[pollId] = true;
+            emit PollStarted(pollId, polls[pollId].startTime);
+        }
     }
 
-    function removeAuditorFromPoll(
-        uint256 pollId,
-        address auditor
-    ) external onlyAdminOrOwner pollExists(pollId) {
-        if (_updateState(pollId) != PollState.Created) revert AccessDenied();
-        isAuditorForPoll[pollId][auditor] = false;
+    function audit(uint256 pollId) external pollExists(pollId) {
+        if (!isAuditor[msg.sender]) revert AccessDenied();
+        if (_updateState(pollId) != PollState.Finalized && _updateState(pollId) != PollState.Ended)
+            revert VotingNotEnded();
+        Poll storage p = polls[pollId];
+        for (uint256 i = 0; i < p.auditors.length; i++) {
+            if (p.auditors[i] == msg.sender) revert AccessDenied(); // already audited
+        }
+        p.auditors.push(msg.sender);
     }
 
     function addOrganization(address user) external onlyAdminOrOwner {
@@ -315,7 +316,7 @@ contract IRVVoting is AutomationCompatibleInterface {
     function vote(uint256 pollId, uint256[] calldata ranking) external pollExists(pollId) {
         Poll storage p = polls[pollId];
 
-        if (_updateState(pollId) != PollState.Active) revert VotingIsActive();
+        if (_updateState(pollId) != PollState.Active) revert VotingIsNotActive();
         if (isAuditor[msg.sender] || msg.sender == pollOrganization[pollId]) revert AccessDenied();
         if (p.whitelistEnabled && !isAllowedVoter[pollId][msg.sender]) revert NotAllowedVoter();
         if (hasVoted[pollId][msg.sender]) revert AlreadyVoted();
@@ -466,6 +467,15 @@ contract IRVVoting is AutomationCompatibleInterface {
     }
 
     // -------------------------
+    // GET WINNER
+    // -------------------------
+    function computeWinner(uint256 pollId) public view pollExists(pollId) returns (uint256) {
+        Poll storage p = polls[pollId];
+        if (!p.finalized) revert VotingNotEnded();
+        return p.winnerIndex;
+    }
+
+    // -------------------------
     // CHAINLINK AUTOMATION
     // -------------------------
 
@@ -475,24 +485,83 @@ contract IRVVoting is AutomationCompatibleInterface {
         for (uint256 i = 0; i < pollCount; i++) {
             Poll storage p = polls[i];
 
-            if (p.exists && !p.finalized && block.timestamp >= p.endTime) {
-                return (true, abi.encode(i));
+            if (!p.exists || p.finalized) {
+                continue;
+            }
+
+            if (!pollStarted[i] && block.timestamp >= p.startTime && block.timestamp < p.endTime) {
+                return (true, abi.encode(uint8(UpkeepAction.EmitPollStarted), i));
+            }
+
+            if (block.timestamp >= p.endTime) {
+                return (true, abi.encode(uint8(UpkeepAction.FinalizePoll), i));
             }
         }
         return (false, "");
     }
 
     function performUpkeep(bytes calldata performData) external override {
-        uint256 pollId = abi.decode(performData, (uint256));
+        (uint8 action, uint256 pollId) = abi.decode(performData, (uint8, uint256));
 
         Poll storage p = polls[pollId];
-        if (p.exists && !p.finalized && block.timestamp >= p.endTime) {
+        if (!p.exists || p.finalized) {
+            return;
+        }
+
+        if (action == uint8(UpkeepAction.EmitPollStarted)) {
+            _maybeEmitPollStarted(pollId);
+            return;
+        }
+
+        if (action == uint8(UpkeepAction.FinalizePoll) && block.timestamp >= p.endTime) {
             // We call your existing finalize logic
-            // NOTE: Since finalizePoll has onlyAdminOrOwner, you should //??
-            // either remove that modifier or allow this contract to call itself.
+            // NOTE: Since finalizePoll allows address(this), this contract can finalize itself.
             this.finalizePoll(pollId);
+            this.computeWinner(pollId);
         }
     }
+
+    // function getPollDetails(
+    //     uint256 pollId
+    // )
+    //     external
+    //     view
+    //     pollExists(pollId)
+    //     returns (
+    //         string memory title,
+    //         uint256 startTime,
+    //         uint256 endTime,
+    //         uint256 candidateCount,
+    //         uint256 maxChoices,
+    //         string[] memory candidateNames,
+    //         address[] memory auditors,
+    //         address creator,
+    //         VoteType voteType,
+    //         PollState currentState
+    //     )
+    // {
+    //     Poll storage p = polls[pollId];
+    //     string[] memory names = new string[](p.candidates.length);
+    //     for (uint256 i = 0; i < p.candidates.length; i++) {
+    //         names[i] = p.candidates[i];
+    //     }
+    //     auditors = new address[](p.auditors.length);
+    //     for (uint256 i = 0; i < p.auditors.length; i++) {
+    //         auditors[i] = p.auditors[i];
+    //     }
+    //     return (
+    //         p.title,
+    //         p.startTime,
+    //         p.endTime,
+    //         p.candidates.length,
+    //         p.maxChoices,
+    //         names,
+    //         pollOrganization[pollId],
+    //         p.voteType,
+    //         p.auditors,
+    //         _updateState(pollId)
+    //     );
+    // }
 
     function getPollDetails(
         uint256 pollId
@@ -507,26 +576,27 @@ contract IRVVoting is AutomationCompatibleInterface {
             uint256 candidateCount,
             uint256 maxChoices,
             string[] memory candidateNames,
+            address[] memory auditors,
             address creator,
             VoteType voteType,
-            PollState currentState
+            PollState currentState,
+            uint256 winnerIndex
         )
     {
         Poll storage p = polls[pollId];
-        string[] memory names = new string[](p.candidates.length);
-        for (uint256 i = 0; i < p.candidates.length; i++) {
-            names[i] = p.candidates[i];
-        }
+
         return (
             p.title,
             p.startTime,
             p.endTime,
             p.candidates.length,
             p.maxChoices,
-            names,
+            p.candidates,
+            p.auditors,
             pollOrganization[pollId],
             p.voteType,
-            _updateState(pollId)
+            _updateState(pollId),
+            p.finalized ? p.winnerIndex : 999
         );
     }
 
@@ -535,15 +605,6 @@ contract IRVVoting is AutomationCompatibleInterface {
         address user
     ) external view pollExists(pollId) returns (bool) {
         return hasVoted[pollId][user];
-    }
-
-    // -------------------------
-    // GET WINNER
-    // -------------------------
-    function computeWinner(uint256 pollId) public view pollExists(pollId) returns (uint256) {
-        Poll storage p = polls[pollId];
-        if (!p.finalized) revert VotingNotEnded();
-        return p.winnerIndex;
     }
 
     // -------------------------
@@ -556,7 +617,7 @@ contract IRVVoting is AutomationCompatibleInterface {
         if (_updateState(pollId) != PollState.Ended && _updateState(pollId) != PollState.Finalized)
             revert VotingNotEnded();
 
-        if (msg.sender != owner && !isAuditorForPoll[pollId][msg.sender]) {
+        if (msg.sender != owner && !isAuditor[msg.sender]) {
             revert AccessDenied();
         }
 
@@ -567,12 +628,5 @@ contract IRVVoting is AutomationCompatibleInterface {
             allRankings[i] = pollBallots[pollId][i].ranking;
         }
         return allRankings;
-    }
-
-    // -------------------------
-    // AUDITOR CHECK
-    // -------------------------
-    function isPollAuditor(uint256 pollId, address user) external view returns (bool) {
-        return isAuditorForPoll[pollId][user];
     }
 }
