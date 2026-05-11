@@ -19,7 +19,7 @@ const SecondStep = ({ onNext, onBack, formData, setFormData }) => {
                 onChange={(e) => setFormData('votingStrategy', e.target.value)}
                 className="appearance-none w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-slate-800 transition-all shadow-sm bg-white">
                 <option>Ranked Choice</option>
-                {/* <option>Single Choice</option> */}
+                <option>Single Choice</option>
               </select>
               <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
@@ -31,8 +31,9 @@ const SecondStep = ({ onNext, onBack, formData, setFormData }) => {
               value={formData.maxRankings}
               onChange={(e) => setFormData('maxRankings', e.target.value)}
               type="number"
-              defaultValue={3}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-slate-800 transition-all shadow-sm"
+              defaultValue={formData.votingStrategy === 'Single Choice' ? 1 : 3}
+              disabled={formData.votingStrategy === 'Single Choice'}
+              className={formData.votingStrategy === 'Single Choice' ? 'w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-slate-800 transition-all shadow-sm bg-slate-100' : 'w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-slate-800 transition-all shadow-sm'}
             />
             <p className="text-[11px] text-slate-500 mt-1.5 font-medium">Voters can rank up to this many options.</p>
           </div>
@@ -66,18 +67,6 @@ const SecondStep = ({ onNext, onBack, formData, setFormData }) => {
               </div>
             </div>
           </div>
-
-          {/* <div className="mt-8 bg-[#F8FAFC] p-4 rounded-xl border border-slate-100 flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-bold text-slate-800 mb-0.5">Anonymous Voting</h4>
-              <p className="text-xs text-slate-500">Hide voter identities in the final report</p>
-            </div>
-            
-            <div className="w-11 h-6 bg-slate-200 rounded-full flex items-center px-1 cursor-pointer">
-              <div className="w-4 h-4 bg-white rounded-full shadow-sm"></div>
-            </div>
-          </div> */}
-
         </div>
       </div>
 

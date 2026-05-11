@@ -40,18 +40,44 @@ const FirstStep = ({ onNext, formData, setFormData }) => {
           
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">
-              Auditor Addresses <span className="text-slate-400 font-normal">(Optional, comma-separated test addresses)</span>
+              Voters Addresses <span className="text-slate-400 font-normal">(Upload CSV)</span>
             </label>
-            <textarea
-              value={formData.auditors}
-              onChange={(e) => setFormData('auditors', e.target.value)}
-              rows={2}
-              placeholder="0xabc..., 0xdef..."
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm placeholder:text-slate-400 transition-all shadow-sm resize-none"
+            <input
+              type="file"
+              accept=".csv"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+                    // setFormData('auditorFile', file);
+                    
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const csvData = event.target.result;
+                      // Split by newlines and commas, trim whitespace, and filter out empty strings
+                      const parsedArray = csvData
+                        .split(/[\r\n]+/)
+                        .flatMap(line => line.split(','))
+                        .map(item => item.trim())
+                        .filter(item => item.length > 0);
+                      
+                      setFormData('VotersAddresses', parsedArray);
+                      console.log('Parsed Voters Addresses:', parsedArray);
+                    };
+                    reader.readAsText(file);
+                  } else {
+                    alert('Please upload a valid CSV file.');
+                    e.target.value = null; // Clear the input
+                  }
+                }
+              }}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all shadow-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             />
-            <div className="text-right text-[11px] font-medium text-slate-400 mt-1">
-              Comma-separated list of Ethereum addresses
-            </div>
+            {formData.auditorFile && (
+              <div className="text-right text-[11px] font-medium text-slate-500 mt-1">
+                Selected: {formData.auditorFile.name}
+              </div>
+            )}
           </div>
         </div>
       </div>

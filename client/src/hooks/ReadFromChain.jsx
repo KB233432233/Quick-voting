@@ -32,17 +32,19 @@ export const getPollDetailsFromChain = async (web3authProvider, pollId) => {
   const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
   try {
-    const details = await contract.getPollDetails(pollId);
+    const [title, startTime, endTime, candidateCount, maxChoices, candidateNames, auditors, creator, voteType, currentState, winnerIndex] = await contract.getPollDetails(pollId);
     return {
-      title: details.title,
-      startTime: Number(details.startTime),
-      endTime: Number(details.endTime),
-      candidateCount: Number(details.candidateCount),
-      maxChoices: Number(details.maxChoices),
-      candidateNames: details.candidateNames,
-      creator: details.creator,
-      voteType: Number(details.voteType),
-      currentState: Number(details.currentState)
+      title,
+      startTime: Number(startTime),
+      endTime: Number(endTime),
+      candidateCount: Number(candidateCount),
+      maxChoices: Number(maxChoices),
+      candidateNames,
+      auditors,
+      creator,
+      voteType: Number(voteType),
+      currentState: Number(currentState),
+      winnerIndex: Number(winnerIndex)
     };
   } catch (error) {
     console.error(`Error reading details for poll ${pollId}:`, error);
@@ -88,10 +90,26 @@ export const checkIsAllowedVoter = async (web3authProvider, pollId, userAddress)
 };
 
 export const getPollWinner = async (web3authProvider, pollId) => {
-  const provider = getProvider(web3authProvider);
-  const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+  let contract;
+  if (web3authProvider) {
+    const provider = new ethers.BrowserProvider(web3authProvider);
+    const signer = await provider.getSigner();
+    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+  } else {
+    const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
+    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+  }
 
   try {
+    // Attempt to get winner from the finalization event first (publicly readable)
+    const filter = contract.filters.PollFinalized(pollId);
+    const events = await contract.queryFilter(filter);
+    
+    if (events && events.length > 0) {
+      return Number(events[events.length - 1].args.winnerIndex);
+    }
+
+    // If no events found, compute dynamically (may revert with AccessDenied)
     const winnerIndex = await contract.computeWinner(pollId);
     return Number(winnerIndex);
   } catch (error) {
@@ -100,13 +118,43 @@ export const getPollWinner = async (web3authProvider, pollId) => {
   }
 };
 
-export const getPollVotes = async (web3authProvider, pollId) => {
+export const getPollsByOrgFromChain = async (web3authProvider, orgAddress) => {
   const provider = getProvider(web3authProvider);
   const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
   try {
+    const pollIds = await contract.getPollsByOrg(orgAddress);
+    return pollIds.map(id => Number(id));
+  } catch (error) {
+    console.error("Error reading org polls:", error);
+    return [];
+  }
+};
+
+export const getPollVotes = async (web3authProvider, pollId) => {
+  let contract;
+  if (web3authProvider) {
+    const provider = new ethers.BrowserProvider(web3authProvider);
+    const signer = await provider.getSigner();
+    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+  } else {
+    const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
+    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+  }
+
+  try {
+    // First, attempt to get finalized tallies from events (publicly readable by anyone)
+    const filter = contract.filters.RoundTally(pollId);
+    const events = await contract.queryFilter(filter);
+    
+    if (events && events.length > 0) {
+      // Return the matrix of round tallies derived from events
+      return events.map(e => e.args.voteCounts.map(vote => Number(vote)));
+    }
+
+    // If no events found (not finalized), try reading directly from the state
+    // (Note: This may revert with AccessDenied for non-auth users)
     const rawVotes = await contract.getVotes(pollId);
-    // getVotes returns uint256[][]. Convert BigInts to Numbers
     return rawVotes.map(round => round.map(vote => Number(vote)));
   } catch (error) {
     console.error(`Error reading votes for poll ${pollId}:`, error);

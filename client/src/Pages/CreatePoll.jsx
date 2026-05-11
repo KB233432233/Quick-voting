@@ -11,17 +11,17 @@ const CreatePoll = () => {
 
   const handleNext = () => setCurrentStep((prev) => Math.min(prev + 1, 3));
   const handleBack = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
-  const { createNewPoll } = useWriteOnChain();
+  const { createNewPoll,addVotersToWhitelist,finalizePoll } = useWriteOnChain();
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       // Map frontend data to smart contract parameters
       const candidateNames = formData.candidates.map(c => c.name);
       const candidateAddresses = formData.candidates.map(c => c.address);
-      const auditorAddresses = formData.auditors
-        .split(',')
-        .map(a => a.trim())
-        .filter(a => a !== '');
+      // const auditorAddresses = formData.auditors
+      //   .split(',')
+      //   .map(a => a.trim())
+      //   .filter(a => a !== '');
       
       const voteType = formData.votingStrategy === 'Ranked Choice' ? 0 : 1; 
 
@@ -29,13 +29,14 @@ const CreatePoll = () => {
         title: formData.title,
         candidateAddresses: candidateAddresses,
         candidateNames: candidateNames,
-        auditorAddresses: auditorAddresses,
+        // auditorAddresses: auditorAddresses,
         voteType: voteType,
         startTime: Math.floor(new Date(formData.startDate).getTime() / 1000),
         endTime: Math.floor(new Date(formData.endDate).getTime() / 1000),
         maxChoices: Number(formData.maxRankings)
       }
       createNewPoll(data);
+      addVotersToWhitelist(formData.VotersAddresses);
     } catch (error) {
       console.error("Error creating poll:", error);
     }
@@ -43,7 +44,7 @@ const CreatePoll = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    auditors: '',
+    VotersAddresses: '',
     votingStrategy: 'Ranked Choice',
     maxRankings: 3,
     startDate: new Date(),

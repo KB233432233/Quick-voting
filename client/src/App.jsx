@@ -5,15 +5,17 @@ import CreatePoll from './Pages/CreatePoll'
 import Footer from './Components/Footer'
 import PollList from './Pages/PollList'
 import AdminLayout from './Components/Admin/AdminLayout'
-import OverviewView from './Pages/Admin/OverviewView'
-import ElectionsView from './Pages/Admin/ElectionsView'
-import SystemNodesView from './Pages/Admin/SystemNodesView'
-import AuditCenterView from './Pages/Admin/AuditCenterView'
+import OrganizationsView from './Pages/Admin/OrganizationsView'
+import AuditorsView from './Pages/Admin/AuditorsView'
+import PollsView from './Pages/Admin/PollsView'
 import PollDetails from './Pages/PollDetails'
 import PollResults from './Pages/PollResults'
 import NotFound from './Pages/NotFound'
 import Signup from './Pages/Signup'
 import Profile from './Pages/Profile'
+import OrgRegistration from './Pages/OrgRegistration'
+import OrgDashboard from './Pages/OrgDashboard/OrgDashboard'
+import AuditorDashboard from './Pages/Auditor/AuditorDashboard'
 
 
 function App() {
@@ -28,13 +30,15 @@ function App() {
         <Route path='/poll/:id' element={<PollDetails />} />
         <Route path='/poll/:id/results' element={<PollResults />} />
         <Route path='/profile' element={<Profile />} />
+        <Route path='/orgRegister' element={<OrgRegistration />} />
+        <Route path='/orgDashboard' element={<OrgDashboard />} />
+        <Route path='/auditorDashboard' element={<AuditorDashboard />} />
 
         <Route path='/admin-v2' element={<AdminLayout />}>
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<OverviewView />} />
-          <Route path="elections" element={<ElectionsView />} />
-          <Route path="system" element={<SystemNodesView />} />
-          <Route path="audit" element={<AuditCenterView />} />
+          <Route index element={<Navigate to="organizations" replace />} />
+          <Route path="organizations" element={<OrganizationsView />} />
+          <Route path="auditors" element={<AuditorsView />} />
+          <Route path="polls" element={<PollsView />} />
         </Route>
         <Route path='*' element={<NotFound />} />
       </Routes>

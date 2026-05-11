@@ -127,19 +127,24 @@ const PollResults = () => {
             {/* Simple Bar Chart Visualization */}
             <div className="flex-1 flex items-end justify-center gap-[10%] sm:gap-[15%] pb-8 relative mt-auto px-4 h-64">
 
-              {results.map((item, idx) => (
-                <div key={idx} className="flex flex-col items-center w-24">
-                  {/* Bar */}
-                  <div 
-                    className={`w-full ${item.color} rounded-t-lg transition-all duration-1000 ease-in-out w-full`}
-                    style={{ height: `${Math.max(item.percentage, 5)}%`, minHeight: '1.5rem' }}
-                  ></div>
-                  {/* X-Axis Label */}
-                  <span className="text-xs font-bold text-slate-500 mt-6 text-center leading-snug">
-                    {item.label}
-                  </span>
-                </div>
-              ))}
+              {results.map((item, idx) => {
+                const maxPercentage = Math.max(...results.map(r => Number(r.percentage)));
+                const normalizedHeight = maxPercentage > 0 ? (Number(item.percentage) / maxPercentage) * 100 : 5;
+
+                return (
+                  <div key={idx} className="flex flex-col items-center w-24 h-full justify-end">
+                    {/* Bar */}
+                    <div 
+                      className={`w-full ${item.color} rounded-t-lg transition-all duration-1000 ease-in-out`}
+                      style={{ height: `${Math.max(normalizedHeight, 5)}%`, minHeight: '1.5rem' }}
+                    ></div>
+                    {/* X-Axis Label */}
+                    <span className="text-xs font-bold text-slate-500 mt-4 text-center leading-snug">
+                      {item.label}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -194,9 +199,7 @@ const PollResults = () => {
 
           <div className="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-lg font-bold text-slate-900">Detailed Results</h2>
-            <button className="text-blue-600 hover:text-blue-700 text-sm font-semibold transition-colors">
-              Download CSV
-            </button>
+            
           </div>
 
           <div className="overflow-x-auto">

@@ -140,8 +140,8 @@ const PollDetails = () => {
         />
 
         <InfoBanner 
-          startDate={new Date(poll.startTime).toLocaleDateString()} 
-          endDate={new Date(poll.endTime).toLocaleDateString()} 
+          startDate={new Date(poll.startTime * 1000).toLocaleDateString()} 
+          endDate={new Date(poll.endTime * 1000).toLocaleDateString()} 
           votingType={poll.voteType} 
         />
 
