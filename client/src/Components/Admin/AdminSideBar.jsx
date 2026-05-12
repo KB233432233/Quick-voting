@@ -12,11 +12,13 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router';
 function AdminSideBar({sidebarOpen, setSidebarOpen ,navItems, userRole}) {
   return (
     <aside
-        className={`${sidebarOpen ? 'w-64' : 'w-20'} 
-        transition-all duration-300 ease-in-out bg-slate-900 border-r border-slate-800 flex flex-col relative group`}
-      >
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/50">
-          {sidebarOpen ? (
+      className={`
+        ${sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64 sm:w-20 sm:translate-x-0'} 
+        fixed sm:relative z-30 h-full transition-all duration-300 ease-in-out bg-slate-900 border-r border-slate-800 flex flex-col group
+      `}
+    >
+      <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/50">
+        {sidebarOpen ? (
             <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
               QuickVote Admin
             </span>
