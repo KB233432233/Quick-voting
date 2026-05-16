@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Wallet, Mail, Activity, Clock, Copy, CheckCircle2 } from 'lucide-react';
-import Navbar from '../Components/Navbar';
 import ActivityItem from '../Components/ActivityItem';
 import StatCard from '../Components/StatCard';
 import ProfileHeader from '../Components/Profile/ProfileHeader';
@@ -14,8 +13,6 @@ function Profile() {
     const { address: account } = useAccount();
     const { userInfo } = useWeb3AuthUser();
 
-    console.log(userInfo);
-
     const handleCopy = () => {
         navigator.clipboard.writeText(account);
         setCopied(true);
@@ -24,7 +21,6 @@ function Profile() {
 
     return (
         <div className="min-h-screen bg-[#F4F6FB] font-sans pb-24 text-slate-800 selection:bg-[#1D58E9]/20 selection:text-[#1D58E9]">
-            <Navbar />
 
             <main className="max-w-250 mx-auto px-6 pt-12">
                 <ProfileHeader isVoter={false} />

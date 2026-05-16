@@ -2,6 +2,65 @@ import { ethers } from "ethers";
 import { useWeb3Auth } from "@web3auth/modal/react";
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from "../context/constants";
 
+// Map custom ABI error names to human-readable messages
+const getErrorMessage = (e) => {
+    let errorName = e.reason || e.message || "Unknown error";
+    
+    // Function to parse the data recursively
+    const parseErrorData = (data) => {
+        if (!data) return null;
+        try {
+            const iface = new ethers.Interface(CONTRACT_ABI);
+            const decodedError = iface.parseError(data);
+            if (decodedError && decodedError.name) {
+                return decodedError.name;
+            }
+        } catch (err) {}
+        return null;
+    };
+
+    const possibleDataSources = [
+        e.data,
+        e.error?.data,
+        e.error?.error?.data,
+        e.info?.error?.data,
+        e.cause?.data,
+        e.transaction?.data,
+        e.receipt?.data
+    ];
+
+    for (const data of possibleDataSources) {
+        let name = parseErrorData(data);
+        if (name) {
+            errorName = name;
+            break;
+        }
+    }
+
+    const messages = {
+        "AccessDenied": "You do not have permission to perform this action.",
+        "AlreadyVoted": "You have already cast your vote for this poll.",
+        "InvalidCandidates": "The list of candidates provided is invalid.",
+        "InvalidMaxChoices": "The maximum number of choices is invalid.",
+        "InvalidRanking": "The provided candidate ranking is invalid.",
+        "InvalidTime": "The specified timeline is invalid.",
+        "NoVoteFound": "No prior vote was found.",
+        "NoWinnerFound": "Could not compute a winner.",
+        "NotAllowedVoter": "You are not an allowed voter for this poll.",
+        "NotOrg": "This action requires Organization privileges.",
+        "NotOwner": "This action requires Owner privileges.",
+        "PollAlreadyFinalized": "This poll has already been finalized.",
+        "PollDoesNotExist": "This poll does not exist.",
+        "VotingEnded": "Voting for this poll has already finished.",
+        "VotingIsNotActive": "Voting is not currently active.",
+        "VotingNotEnded": "Voting has not finished yet.",
+        "VotingNotStarted": "Voting has not started yet."
+    };
+
+    // Return the mapped message if it exists, otherwise provide a fallback
+    return messages[errorName] || errorName || "An unknown blockchain error occurred.";
+};
+
 export const useWriteOnChain = () => {
     const { provider: web3authProvider } = useWeb3Auth();
 
@@ -29,7 +88,8 @@ export const useWriteOnChain = () => {
             return receipt;
         } catch (e) {
             console.error("Vote Tx failed:", e);
-            throw e;
+            const message = getErrorMessage(e);
+            throw new Error(message);
         }
     };
 
@@ -40,9 +100,8 @@ export const useWriteOnChain = () => {
             
             const { 
                 title, 
-                candidateAddresses, 
+                voters, 
                 candidateNames, 
-                auditorAddresses, 
                 voteType, 
                 startTime, 
                 endTime, 
@@ -51,9 +110,8 @@ export const useWriteOnChain = () => {
 
             const tx = await votingContract.createPoll(
                 title,
-                candidateAddresses,
-                candidateNames,
-                auditorAddresses,
+                voters, // _voters (address array)
+                candidateNames, // _candidates (string array)
                 voteType,
                 startTime,
                 endTime,
@@ -68,7 +126,8 @@ export const useWriteOnChain = () => {
             
         } catch (e) {
             console.error("Failed to create poll:", e);
-            throw e;
+            const message = getErrorMessage(e);
+            throw new Error(message);
         }
     };
 
@@ -87,7 +146,8 @@ export const useWriteOnChain = () => {
             
         } catch (e) {
             console.error("Failed to add organization:", e);
-            throw e;
+            const message = getErrorMessage(e);
+            throw new Error(message);
         }
     };
 
@@ -106,7 +166,8 @@ export const useWriteOnChain = () => {
             
         } catch (e) {
             console.error("Failed to finalize poll:", e);
-            throw e;
+            const message = getErrorMessage(e);
+            throw new Error(message);
         }
     };
 

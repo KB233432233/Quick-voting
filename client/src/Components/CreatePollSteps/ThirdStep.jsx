@@ -13,7 +13,7 @@ const ThirdStep = ({ onBack, formData, setFormData, handleSubmit }) => {
   };
 
   const addCandidate = () => {
-    const newCandidates = [...candidates, { id: Date.now(), name: '', address: '' }];
+    const newCandidates = [...candidates, ''];
     setCandidates(newCandidates);
     setFormData('candidates', newCandidates);
   };
@@ -38,23 +38,17 @@ const ThirdStep = ({ onBack, formData, setFormData, handleSubmit }) => {
         <div className="space-y-4">
 
           {candidates.map((cand, idx) => (
-            <div key={cand.id} className="flex flex-col sm:flex-row items-center gap-3 bg-white p-3 rounded-xl border border-slate-200">
+            <div key={idx} className="flex flex-col sm:flex-row items-center gap-3 bg-white p-3 rounded-xl border border-slate-200">
               <GripVertical className="w-5 h-5 text-slate-300 cursor-grab shrink-0 hidden sm:block" />
               
               <div className="flex-1 w-full space-y-2">
                 <input
                   type="text"
-                  value={cand.name}
+                  required
+                  value={cand}
                   onChange={(e) => updateCandidate(idx, 'name', e.target.value)}
                   placeholder="Candidate Name (e.g., Alice)"
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-slate-800 transition-all shadow-sm"
-                />
-                <input
-                  type="text"
-                  value={cand.address}
-                  onChange={(e) => updateCandidate(idx, 'address', e.target.value)}
-                  placeholder="Candidate Address (0x...)"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono focus:border-transparent text-sm text-slate-800 transition-all shadow-sm"
                 />
               </div>
 
@@ -87,9 +81,6 @@ const ThirdStep = ({ onBack, formData, setFormData, handleSubmit }) => {
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
-          <button className="w-full sm:w-auto bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors">
-            Save Draft
-          </button>
           <button 
             onClick={handleSubmit}
             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors"

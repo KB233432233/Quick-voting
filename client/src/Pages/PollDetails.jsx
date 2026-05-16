@@ -14,11 +14,11 @@ import {
   GraduationCap,
   Leaf,
 } from 'lucide-react';
-import Navbar from '../Components/Navbar';
 import CandidateCard from '../Components/PollDetails/CandidateCard'
 import FloatingBar from '../Components/PollDetails/FloatingBar'
 import InfoBanner from '../Components/PollDetails/InfoBanner';
 import PollTitle from '../Components/PollDetails/PollTitle';
+import Popup from '../Components/Popup';
 
 const PollDetails = () => {
   const { id } = useParams();
@@ -30,6 +30,10 @@ const PollDetails = () => {
   const [poll, setPoll] = useState(null);
   const [selected, setSelected] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Popup state
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [popupContent, setPopupContent] = useState({ title: '', message: '' });
 
   useEffect(() => {
     const fetchPoll = async () => {
@@ -59,7 +63,12 @@ const PollDetails = () => {
   ];
 
   const handleVote = async () => {
-    if (selected.length === 0) return alert("Select at least 1 candidate");
+    if (selected.length === 0) {
+      setPopupContent({ title: 'Wait!', message: 'Please select at least 1 candidate to vote.' });
+      setPopupOpen(true);
+      return;
+    }
+    
     try {
       setIsSubmitting(true);
       
@@ -68,11 +77,14 @@ const PollDetails = () => {
       const rankedIndices = selected.map(cid => cid - 1);
       
       await voteOnPoll(pollId, rankedIndices);
-      alert("Vote submitted successfully!");
+      
+      setPopupContent({ title: 'Success', message: 'Your vote has been submitted successfully to the blockchain!' });
+      setPopupOpen(true);
       
     } catch (err) {
       console.error(err);
-      alert("Vote failed. See console for details.");
+      setPopupContent({ title: 'Transaction Failed', message: 'There was an error submitting your vote. Please check your wallet connection and try again.' });
+      setPopupOpen(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -89,7 +101,6 @@ const PollDetails = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] font-sans pb-32">
-        <Navbar />
         <div className="text-center py-20 text-slate-500 font-medium">Loading poll details from the blockchain...</div>
       </div>
     );
@@ -98,7 +109,6 @@ const PollDetails = () => {
   if (!poll) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] font-sans pb-32">
-        <Navbar />
         <div className="text-center py-20 font-medium text-red-500">Poll not found on the blockchain!</div>
       </div>
     );
@@ -121,15 +131,14 @@ const PollDetails = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans pb-32">
-      <Navbar />
+    <div className="min-h-screen bg-[#F8FAFC] font-sans pb-32 pt-6">
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
 
 
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-6 uppercase tracking-wider">
-          <span className="flex items-center gap-1.5 cursor-pointer hover:text-slate-800 transition-colors">
+          <Link to={'/polllist'} className="flex items-center gap-1.5 cursor-pointer hover:text-slate-800 transition-colors">
             <div className="w-3 h-3 bg-slate-400 rounded-sm"></div> Polls
-          </span>
+          </Link>
           <ChevronRight className="w-3 h-3" />
           <span className="text-slate-800">{poll.title}</span>
         </div>
@@ -142,7 +151,7 @@ const PollDetails = () => {
         <InfoBanner 
           startDate={new Date(poll.startTime * 1000).toLocaleDateString()} 
           endDate={new Date(poll.endTime * 1000).toLocaleDateString()} 
-          votingType={poll.voteType} 
+          votingType={poll.voteType === 0 ? `Ranked Choice (Top ${poll.maxChoices})` : "Majority Voting"} 
         />
 
         {/* Candidates Section */}
@@ -195,6 +204,14 @@ const PollDetails = () => {
           </button>
         </div>
       </div>
+
+      <Popup 
+        isOpen={popupOpen} 
+        onClose={() => setPopupOpen(false)} 
+        title={popupContent.title} 
+        message={popupContent.message} 
+        isAlert={true} 
+      />
     </div>
   );
 };

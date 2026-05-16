@@ -15,27 +15,12 @@ const FirstStep = ({ onNext, formData, setFormData }) => {
             <label className="block text-sm font-bold text-slate-700 mb-2">Poll title</label>
             <input
               value={formData.title}
+              required
               onChange={(e) => setFormData('title', e.target.value)}
               type="text"
               placeholder="e.g. Q4 Team Building Event Location"
               className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm placeholder:text-slate-400 transition-all shadow-sm"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">
-              Description <span className="text-slate-400 font-normal">(Optional)</span>
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData('description', e.target.value)}
-              rows={4}
-              placeholder="Describe the purpose of this poll and any instructions for voters..."
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm placeholder:text-slate-400 transition-all shadow-sm resize-none"
-            />
-            <div className="text-right text-[11px] font-medium text-slate-400 mt-1">
-              0/500 characters
-            </div>
           </div>
           
           <div>
@@ -45,6 +30,7 @@ const FirstStep = ({ onNext, formData, setFormData }) => {
             <input
               type="file"
               accept=".csv"
+              required
               onChange={(e) => {
                 const file = e.target.files[0];
                 if (file) {

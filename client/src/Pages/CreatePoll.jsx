@@ -3,11 +3,14 @@ import { Check } from 'lucide-react';
 import FirstStep from '../Components/CreatePollSteps/FirstStep';
 import SecondStep from '../Components/CreatePollSteps/SecondStep';
 import ThirdStep from '../Components/CreatePollSteps/ThirdStep';
+import Popup from '../Components/Popup';
 import { Link } from 'react-router';
 import { useWriteOnChain } from '../hooks/WriteOnChain';
 
 const CreatePoll = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [popupContent, setPopupContent] = useState({ title: '', message: '', isAlert: true });
 
   const handleNext = () => setCurrentStep((prev) => Math.min(prev + 1, 3));
   const handleBack = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
@@ -16,44 +19,41 @@ const CreatePoll = () => {
     e.preventDefault();
     try {
       // Map frontend data to smart contract parameters
-      const candidateNames = formData.candidates.map(c => c.name);
-      const candidateAddresses = formData.candidates.map(c => c.address);
-      // const auditorAddresses = formData.auditors
-      //   .split(',')
-      //   .map(a => a.trim())
-      //   .filter(a => a !== '');
+      // const candidateNames = formData.candidates.map(c => c.name);
+      // const candidateAddresses = formData.candidates.map(c => c.address);
+
       
       const voteType = formData.votingStrategy === 'Ranked Choice' ? 0 : 1; 
 
       const data = {
         title: formData.title,
-        candidateAddresses: candidateAddresses,
-        candidateNames: candidateNames,
-        // auditorAddresses: auditorAddresses,
+        voters: (formData.VotersAddresses || []).map(a => a.toLowerCase()),
+        candidateNames: formData.candidates,
         voteType: voteType,
         startTime: Math.floor(new Date(formData.startDate).getTime() / 1000),
         endTime: Math.floor(new Date(formData.endDate).getTime() / 1000),
         maxChoices: Number(formData.maxRankings)
       }
-      createNewPoll(data);
-      addVotersToWhitelist(formData.VotersAddresses);
+      await createNewPoll(data);
+      setPopupContent({ title: 'Success', message: 'Poll created successfully!', isAlert: false });
+      setPopupOpen(true);
+      // Wait for poll creation before navigating or showing success
+      // addVotersToWhitelist is not needed here since we pass them in createNewPoll
     } catch (error) {
       console.error("Error creating poll:", error);
+      const errorMessage = error.message || 'There was an error creating your poll.';
+      setPopupContent({ title: 'Error', message: errorMessage, isAlert: true });
+      setPopupOpen(true);
     }
   };
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
-    VotersAddresses: '',
+    VotersAddresses: [],
     votingStrategy: 'Ranked Choice',
     maxRankings: 3,
     startDate: new Date(),
     endDate: new Date(Date.now() + 86400000),
-    candidates: [
-      { id: Date.now(), name: 'Alice', address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8' },
-      { id: Date.now() + 1, name: 'Bob', address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' },
-      { id: Date.now() + 2, name: 'Charlie', address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906' }
-    ]
+    candidates: [""]
   });
 
   const setData = (name, value) => {
@@ -109,6 +109,13 @@ const CreatePoll = () => {
           })}
         </div>
           
+        <Popup
+          isOpen={popupOpen}
+          onClose={() => setPopupOpen(false)}
+          title={popupContent.title}
+          message={popupContent.message}
+          isAlert={popupContent.isAlert}
+        />
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-h-[400px]">
           {currentStep === 1 && <FirstStep formData={formData} setFormData={setData} onNext={handleNext} />}
           {currentStep === 2 && <SecondStep formData={formData} setFormData={setData} onNext={handleNext} onBack={handleBack} />}

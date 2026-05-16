@@ -31,7 +31,9 @@ const SecondStep = ({ onNext, onBack, formData, setFormData }) => {
               value={formData.maxRankings}
               onChange={(e) => setFormData('maxRankings', e.target.value)}
               type="number"
-              defaultValue={formData.votingStrategy === 'Single Choice' ? 1 : 3}
+              required
+              defaultValue={3}
+              value={formData.votingStrategy === 'Single Choice' ? 1 : formData.maxRankings}
               disabled={formData.votingStrategy === 'Single Choice'}
               className={formData.votingStrategy === 'Single Choice' ? 'w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-slate-800 transition-all shadow-sm bg-slate-100' : 'w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-slate-800 transition-all shadow-sm'}
             />
@@ -46,6 +48,7 @@ const SecondStep = ({ onNext, onBack, formData, setFormData }) => {
                 <DatePicker
                   // type="date"
                   selected={formData.startDate}
+                  required
                   onChange={(e) => setFormData('startDate', e)}
                   placeholderText="mm/dd/yyyy, --:-- --"
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-slate-800 transition-all shadow-sm"
@@ -59,6 +62,7 @@ const SecondStep = ({ onNext, onBack, formData, setFormData }) => {
                 <DatePicker
                   // type="date"
                   selected={formData.endDate}
+                  required
                   onChange={(date) => setFormData('endDate', date)}
                   placeholderText="mm/dd/yyyy, --:-- --"
                   dateFormat="MM/dd/yyyy"

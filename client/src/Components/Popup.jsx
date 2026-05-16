@@ -1,7 +1,7 @@
 
 import { X } from 'lucide-react';
 
-function Popup({ isOpen, onClose, title, message, action, confirmDelete, setPopupOpen }) {
+function Popup({ isOpen, onClose, title, message, action, confirmDelete, setPopupOpen, isAlert = false }) {
   if (!isOpen) return null;
 
   return (
@@ -16,17 +16,19 @@ function Popup({ isOpen, onClose, title, message, action, confirmDelete, setPopu
         <div className="p-6">
             <p className="text-slate-600 mb-6">{message}</p>
             <div className="flex justify-end gap-3">
+            {!isAlert && (
+              <button 
+                  onClick={() => setPopupOpen(false)}
+                  className="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+              >
+                  Cancel
+              </button>
+            )}
             <button 
-                onClick={() => setPopupOpen(false)}
-                className="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+                onClick={isAlert ? onClose : confirmDelete}
+                className={`px-4 py-2 text-white rounded-lg transition-colors font-medium ${isAlert ? 'bg-blue-600 hover:bg-blue-700' : 'bg-rose-600 hover:bg-rose-700'}`}
             >
-                Cancel
-            </button>
-            <button 
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors font-medium"
-            >
-                {action}
+                {isAlert ? "OK" : action}
             </button>
             </div>
         </div>

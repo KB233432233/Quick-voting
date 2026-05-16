@@ -53,7 +53,8 @@ export const getPollDetailsFromChain = async (web3authProvider, pollId) => {
 };
 
 export const getUserRoleFromChain = async (web3authProvider, userAddress) => {
-  const provider = getProvider(web3authProvider);
+  // Always use standard RPC for reading to ensure we query Sepolia regardless of wallet state
+  const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
   const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
   try {
@@ -113,10 +114,35 @@ export const getPollWinner = async (web3authProvider, pollId) => {
     const winnerIndex = await contract.computeWinner(pollId);
     return Number(winnerIndex);
   } catch (error) {
-    console.error("Error computing winner (poll may not be finalized):", error);
+    console.error(`Error fetching winner for poll ${pollId}:`, error);
     return null;
   }
 };
+
+export const getVotesFromChain = async (web3authProvider, pollId) => {
+  if (!web3authProvider) return []; // Must be logged in as Auditor/Owner
+  
+  const provider = new ethers.BrowserProvider(web3authProvider);
+  const signer = await provider.getSigner();
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+  try {
+    const rawVotes = await contract.getVotes(pollId);
+    
+    // Convert array of arrays logic into a cleaner structure
+    const formattedVotes = rawVotes.map((ranking, index) => ({
+      id: `tx-${index}`,
+      ranking: ranking.map(r => Number(r)), // Array of index choices (1st choice, 2nd choice)
+      timestamp: 'N/A (Stored On Chain)', // The contract doesn't store timestamps natively per vote in the state array, only emits them in events
+    }));
+
+    return formattedVotes;
+  } catch (error) {
+    console.error(`Error fetching votes for poll ${pollId}:`, error);
+    return [];
+  }
+};
+
 
 export const getPollsByOrgFromChain = async (web3authProvider, orgAddress) => {
   const provider = getProvider(web3authProvider);

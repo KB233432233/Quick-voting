@@ -8,7 +8,6 @@ import {
   Check,
   ExternalLink
 } from 'lucide-react';
-import Navbar from '../Components/Navbar';
 import { Link } from 'react-router';
 import { getPollDetailsFromChain, getPollVotes, getPollWinner } from '../hooks/ReadFromChain';
 
@@ -74,7 +73,6 @@ const PollResults = () => {
   if (loading || !poll) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] font-sans pb-20">
-        <Navbar />
         <div className="text-center py-20 text-slate-500 font-medium">
           {loading ? "Loading poll results from the blockchain..." : "Poll details could not be found."}
         </div>
@@ -84,7 +82,6 @@ const PollResults = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans pb-20">
-      <Navbar />
       <main className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 mt-8">
 
         {/* Breadcrumb & Navigation */}

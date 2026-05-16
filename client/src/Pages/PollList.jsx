@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useWeb3Auth } from '@web3auth/modal/react';
 import { Zap, Clock, CheckCircle2, Rocket, BarChart3 } from 'lucide-react';
-import Navbar from '../Components/Navbar';
 import PollCard from '../Components/PollList/PollCard';
 import SectionHeader from '../Components/PollList/SectionHeader';
 import { getPollsFromChain, getPollDetailsFromChain } from '../hooks/ReadFromChain';
@@ -57,11 +56,10 @@ function PollList() {
   const upcomingPolls = polls.filter(p => now < p.startTime);
   const closedPolls = polls.filter(p => now > p.endTime);
 
-  const formatDate = (ts) => new Date(ts * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const formatDate = (ts) => new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
     <div className="min-h-screen bg-[#F4F6FB] font-sans pb-24 text-slate-800 selection:bg-[#1D58E9]/20 selection:text-[#1D58E9]">
-      <Navbar />
       <main className="max-w-[1000px] mx-auto px-6 pt-12">
         <div className="mb-10 max-w-2xl">
           <h1 className="text-[26px] tracking-tight font-extrabold text-[#0B1527] mb-3">Voting Rounds</h1>
