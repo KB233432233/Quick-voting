@@ -192,16 +192,6 @@ const OrgDashboard = () => {
                         >
                           <BarChart2 size={16} />
                         </Link>
-                        
-                        {/* Show Finalize button only if the poll has Ended and is not yet finalized. Assuming currentState 0 = Active, 1 = Finalized */}
-                        {status.label === 'Ended' && poll.voteType === 0 && (
-                          <button
-                            onClick={() => handleFinalize(poll.id)}
-                            className="text-xs bg-indigo-50 border border-indigo-200 text-indigo-700 px-3 py-1.5 rounded-lg hover:bg-indigo-100 font-medium transition"
-                          >
-                            Finalize
-                          </button>
-                        )}
                       </td>
                     </tr>
                   )

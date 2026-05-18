@@ -81,7 +81,7 @@ const PollResults = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans pb-20">
+    <div className="min-h-screen bg-[#F8FAFC] pt-3 font-sans pb-20">
       <main className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 mt-8">
 
         {/* Breadcrumb & Navigation */}
@@ -150,7 +150,7 @@ const PollResults = () => {
 
             {/* Proof Card */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-              <div className="flex items-center gap-3 mb-6">
+              {/* <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
@@ -162,9 +162,9 @@ const PollResults = () => {
                 <p className="text-sm text-slate-700 leading-snug">
                   Zero-knowledge proof verification successful.
                 </p>
-              </div>
+              </div> */}
 
-              <div className="border-t border-slate-100 pt-6 space-y-4">
+              <div className=" pt-3 space-y-4">
                 <div>
                   <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1">End Timestamp</p>
                   <p className="text-xs font-mono text-slate-800">{new Date(poll.endTime * 1000).toUTCString()}</p>

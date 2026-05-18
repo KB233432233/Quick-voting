@@ -35,7 +35,7 @@ const CreatePoll = () => {
         maxChoices: Number(formData.maxRankings)
       }
       await createNewPoll(data);
-      setPopupContent({ title: 'Success', message: 'Poll created successfully!', isAlert: false });
+      setPopupContent({ title: 'Success', message: 'Poll created successfully!', isAlert: true });
       setPopupOpen(true);
       // Wait for poll creation before navigating or showing success
       // addVotersToWhitelist is not needed here since we pass them in createNewPoll

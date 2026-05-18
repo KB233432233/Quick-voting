@@ -4,9 +4,9 @@ import { ArrowLeft, GripVertical, Trash2, Plus, Rocket } from 'lucide-react';
 const ThirdStep = ({ onBack, formData, setFormData, handleSubmit }) => {
   const [candidates, setCandidates] = useState(formData.candidates);
 
-  const updateCandidate = (idx, field, value) => {
+  const updateCandidate = (idx, value) => {
     const updated = [...candidates];
-    updated[idx][field] = value;
+    updated[idx] = value;
     setCandidates(updated);
     // synchronize back to CreatePoll
     setFormData('candidates', updated);
@@ -25,8 +25,11 @@ const ThirdStep = ({ onBack, formData, setFormData, handleSubmit }) => {
   };
 
   const validate = () => {
-    if (candidates.length < formData.maxRankings) return 0;
-    else return 1
+    if (candidates.length < 2) return false;
+    const maxRankings = formData.votingStrategy === 'Single Choice' ? 1 : Number(formData.maxRankings);
+    if (candidates.length < maxRankings) return false;
+    if (candidates.some((cand) => cand.trim() === '')) return false;
+    return true;
   };
 
   return (
@@ -46,7 +49,7 @@ const ThirdStep = ({ onBack, formData, setFormData, handleSubmit }) => {
                   type="text"
                   required
                   value={cand}
-                  onChange={(e) => updateCandidate(idx, 'name', e.target.value)}
+                  onChange={(e) => updateCandidate(idx, e.target.value)}
                   placeholder="Candidate Name (e.g., Alice)"
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-slate-800 transition-all shadow-sm"
                 />
@@ -83,7 +86,8 @@ const ThirdStep = ({ onBack, formData, setFormData, handleSubmit }) => {
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
           <button 
             onClick={handleSubmit}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors"
+            disabled={!validate()}
+            className={`w-full sm:w-auto flex items-center justify-center gap-2 ${!validate() ? 'bg-gray-400 hover:bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors`}
           >
             Deploy Poll <Rocket className="w-4 h-4" />
           </button>

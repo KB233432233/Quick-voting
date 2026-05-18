@@ -1,6 +1,71 @@
 import { ethers } from "ethers";
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from "../context/constants";
 
+// Extract only valid ABI fragments to prevent parsing warnings from compiler artifacts
+const validAbi = CONTRACT_ABI.filter(
+    (item) => item.type === "error" || item.type === "function" || item.type === "event" || item.type === "constructor"
+);
+const CONTRACT_IFACE = new ethers.Interface(validAbi);
+
+// Map custom ABI error names to human-readable messages
+const getErrorMessage = (e) => {
+    let errorName = e.reason || e.message || "Unknown error";
+    
+    // Function to parse the data recursively
+    const parseErrorData = (data) => {
+        if (!data || typeof data !== "string") return null;
+        try {
+            const decodedError = CONTRACT_IFACE.parseError(data);
+            if (decodedError && decodedError.name) return decodedError.name;
+        } catch (err) {}
+        
+        // Fallback: Check if we have errorSelector in the AST nodes (from compiler output)
+        const hexData = data.startsWith("0x") ? data.slice(2) : data;
+        const selector = hexData.slice(0, 8);
+        const matchedError = CONTRACT_ABI.find(
+            (item) => item.errorSelector && item.errorSelector.toLowerCase() === selector.toLowerCase()
+        );
+        if (matchedError) return matchedError.name;
+
+        return null;
+    };
+
+    const possibleDataSources = [
+        e.data, e.error?.data, e.error?.error?.data, e.info?.error?.data,
+        e.cause?.data, e.transaction?.data, e.receipt?.data
+    ];
+
+    for (const data of possibleDataSources) {
+        let name = parseErrorData(data);
+        if (name) {
+            errorName = name;
+            break;
+        }
+    }
+
+    const messages = {
+        "AccessDenied": "You do not have permission to perform this action.",
+        "AlreadyVoted": "You have already cast your vote for this poll.",
+        "InvalidCandidates": "The list of candidates provided is invalid.",
+        "InvalidMaxChoices": "The maximum number of choices is invalid.",
+        "InvalidRanking": "The provided candidate ranking is invalid.",
+        "InvalidTime": "The specified timeline is invalid.",
+        "NoVoteFound": "No prior vote was found.",
+        "NoWinnerFound": "Could not compute a winner.",
+        "NotAllowedVoter": "You are not an allowed voter for this poll.",
+        "NotOrg": "This action requires Organization privileges.",
+        "NotOwner": "This action requires Owner privileges.",
+        "PollAlreadyFinalized": "This poll has already been finalized.",
+        "PollDoesNotExist": "This poll does not exist.",
+        "VotingEnded": "Voting for this poll has already finished.",
+        "VotingIsNotActive": "Voting is not currently active.",
+        "VotingNotEnded": "Voting has not finished yet.",
+        "VotingNotStarted": "Voting has not started yet."
+    };
+
+    return messages[errorName] || errorName || "An unknown blockchain error occurred.";
+};
+
 // Public RPC for reading without a wallet
 const SEPOLIA_RPC_URL = "https://sepolia.infura.io/v3/bc605433bf354b83a87269063fd5aa97";
 
@@ -22,7 +87,7 @@ export const getPollsFromChain = async (web3authProvider) => {
     console.log("Total Polls:", totalPolls.toString());
     return allPollIds;
   } catch (error) {
-    console.error("Error reading polls from chain:", error);
+    console.error( getErrorMessage(error));
     return [];
   }
 };
@@ -47,7 +112,7 @@ export const getPollDetailsFromChain = async (web3authProvider, pollId) => {
       winnerIndex: Number(winnerIndex)
     };
   } catch (error) {
-    console.error(`Error reading details for poll ${pollId}:`, error);
+    console.error( getErrorMessage(error));
     return null;
   }
 };
@@ -61,7 +126,7 @@ export const getUserRoleFromChain = async (web3authProvider, userAddress) => {
     const role = await contract.getUserRole(userAddress);
     return role; // "Admin", "Organization", "Auditor", or "User"
   } catch (error) {
-    console.error("Error reading user role:", error);
+    console.error( getErrorMessage(error));
     return "User";
   }
 };
@@ -73,7 +138,7 @@ export const checkHasUserVoted = async (web3authProvider, pollId, userAddress) =
   try {
     return await contract.hasUserVoted(pollId, userAddress);
   } catch (error) {
-    console.error("Error checking if user voted:", error);
+    console.error( getErrorMessage(error));
     return false;
   }
 };
@@ -85,7 +150,7 @@ export const checkIsAllowedVoter = async (web3authProvider, pollId, userAddress)
   try {
     return await contract.isAllowedVoter(pollId, userAddress);
   } catch (error) {
-    console.error("Error checking if user is allowed voter:", error);
+    console.error(getErrorMessage(error));
     return false;
   }
 };
@@ -114,7 +179,7 @@ export const getPollWinner = async (web3authProvider, pollId) => {
     const winnerIndex = await contract.computeWinner(pollId);
     return Number(winnerIndex);
   } catch (error) {
-    console.error(`Error fetching winner for poll ${pollId}:`, error);
+    console.error( getErrorMessage(error));
     return null;
   }
 };
@@ -138,7 +203,7 @@ export const getVotesFromChain = async (web3authProvider, pollId) => {
 
     return formattedVotes;
   } catch (error) {
-    console.error(`Error fetching votes for poll ${pollId}:`, error);
+    console.error( getErrorMessage(error));
     return [];
   }
 };
@@ -152,7 +217,7 @@ export const getPollsByOrgFromChain = async (web3authProvider, orgAddress) => {
     const pollIds = await contract.getPollsByOrg(orgAddress);
     return pollIds.map(id => Number(id));
   } catch (error) {
-    console.error("Error reading org polls:", error);
+    console.error( getErrorMessage(error));
     return [];
   }
 };
@@ -183,7 +248,7 @@ export const getPollVotes = async (web3authProvider, pollId) => {
     const rawVotes = await contract.getVotes(pollId);
     return rawVotes.map(round => round.map(vote => Number(vote)));
   } catch (error) {
-    console.error(`Error reading votes for poll ${pollId}:`, error);
+    console.error( getErrorMessage(error));
     return [];
   }
 };

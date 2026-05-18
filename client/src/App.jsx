@@ -24,8 +24,8 @@ function App() {
   return <>
     <BrowserRouter>
       <Routes>
+        <Route path='/' element={<Home />} />
         <Route element={<Layout />}>
-            <Route path='/' element={<Home />} />
             <Route path='/pollList' element={<PollList />} />
 
             <Route path='/createPoll' element={
@@ -36,8 +36,11 @@ function App() {
             <Route path='/poll/:id' element={<PollDetails />} />
             <Route path='/poll/:id/results' element={<PollResults />} />
             <Route path='/profile' element={<Profile />} />
-            <Route path='/orgRegister' element={<OrgRegistration />} />
-          
+
+            <Route path='/orgRegister' element={
+              <ProtectedRoute allowedRoles={['User', 'Guest']}>
+                <OrgRegistration />
+              </ProtectedRoute> } />
           
           {/* Protected Dashboard Routes */}
           <Route path='/orgDashboard' element={

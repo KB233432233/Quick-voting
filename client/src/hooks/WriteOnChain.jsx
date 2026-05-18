@@ -2,20 +2,34 @@ import { ethers } from "ethers";
 import { useWeb3Auth } from "@web3auth/modal/react";
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from "../context/constants";
 
+// Extract only valid ABI fragments to prevent parsing warnings from compiler artifacts
+const validAbi = CONTRACT_ABI.filter(
+    (item) => item.type === "error" || item.type === "function" || item.type === "event" || item.type === "constructor"
+);
+const CONTRACT_IFACE = new ethers.Interface(validAbi);
+
 // Map custom ABI error names to human-readable messages
 const getErrorMessage = (e) => {
     let errorName = e.reason || e.message || "Unknown error";
     
     // Function to parse the data recursively
     const parseErrorData = (data) => {
-        if (!data) return null;
+        if (!data || typeof data !== "string") return null;
         try {
-            const iface = new ethers.Interface(CONTRACT_ABI);
-            const decodedError = iface.parseError(data);
+            const decodedError = CONTRACT_IFACE.parseError(data);
             if (decodedError && decodedError.name) {
                 return decodedError.name;
             }
         } catch (err) {}
+        
+        // Fallback: Check if we have errorSelector in the AST nodes (from compiler output)
+        const hexData = data.startsWith("0x") ? data.slice(2) : data;
+        const selector = hexData.slice(0, 8);
+        const matchedError = CONTRACT_ABI.find(
+            (item) => item.errorSelector && item.errorSelector.toLowerCase() === selector.toLowerCase()
+        );
+        if (matchedError) return matchedError.name;
+
         return null;
     };
 
@@ -185,8 +199,9 @@ export const useWriteOnChain = () => {
             return receipt;
             
         } catch (e) {
+            const message = getErrorMessage(e);
             console.error("Failed to add voters to whitelist:", e);
-            throw e;
+            throw new Error(message);
         }
     };
 
@@ -202,9 +217,10 @@ export const useWriteOnChain = () => {
             
             return receipt;
             
-        } catch (e) {
-            console.error("Failed to delete poll:", e);
-            throw e;
+            } catch (e) {
+                const message = getErrorMessage(e);
+                console.error("Failed to delete poll:", e);
+                throw new Error(message);
         }
     };
 
@@ -222,7 +238,8 @@ export const useWriteOnChain = () => {
             
         } catch (e) {
             console.error("Failed to audit poll:", e);
-            throw e;
+            const message = getErrorMessage(e);
+            throw new Error(message);
         }
     };
 
@@ -240,7 +257,8 @@ export const useWriteOnChain = () => {
             
         } catch (e) {
             console.error("Failed to remove organization:", e);
-            throw e;
+            const message = getErrorMessage(e);
+            throw new Error(message);
         }
     };
 
@@ -258,7 +276,8 @@ export const useWriteOnChain = () => {
             
         } catch (e) {
             console.error("Failed to add admin:", e);
-            throw e;
+            const message = getErrorMessage(e);
+            throw new Error(message);
         }
     };
 
@@ -276,7 +295,8 @@ export const useWriteOnChain = () => {
             
         } catch (e) {
             console.error("Failed to remove admin:", e);
-            throw e;
+            const message = getErrorMessage(e);
+            throw new Error(message);
         }
     };
 
@@ -294,7 +314,8 @@ export const useWriteOnChain = () => {
             
         } catch (e) {
             console.error("Failed to add auditor:", e);
-            throw e;
+            const message = getErrorMessage(e);
+            throw new Error(message);
         }
     };
 
@@ -312,7 +333,8 @@ export const useWriteOnChain = () => {
             
         } catch (e) {
             console.error("Failed to remove auditor:", e);
-            throw e;
+            const message = getErrorMessage(e);
+            throw new Error(message);
         }
     };
 
