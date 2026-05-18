@@ -11,6 +11,7 @@ contract IRVVoting is AutomationCompatibleInterface {
     error NotAllowedVoter();
     error PollDoesNotExist();
     error VotingNotStarted();
+    error InvalidCredintials();
     error VotingEnded();
     error VotingIsNotActive();
     error VotingNotEnded();
@@ -65,6 +66,7 @@ contract IRVVoting is AutomationCompatibleInterface {
     uint256[] private allPollIds;
 
     mapping(uint256 => mapping(address => bool)) public isAllowedVoter;
+    mapping(uint256 => address[]) public allowedVotersList;
     mapping(uint256 => mapping(address => bool)) public hasVoted;
     mapping(uint256 => address[]) private actualVoters;
     mapping(address => bool) public isAdmin;
@@ -73,6 +75,7 @@ contract IRVVoting is AutomationCompatibleInterface {
     mapping(uint256 => bool) public pollStarted;
     mapping(uint256 => address) public pollOrganization;
     mapping(address => uint256[]) private pollsByOrg;
+    mapping(address => uint256[]) private pollsAuditedBy;
 
     struct Ballot {
         uint256[] ranking;
@@ -148,8 +151,13 @@ contract IRVVoting is AutomationCompatibleInterface {
     ) external returns (uint256) {
         if (!isOrganization[msg.sender] && msg.sender != owner) revert AccessDenied();
         if (_maxChoices == 0 || _maxChoices > _candidates.length) revert InvalidMaxChoices();
-        if (_candidates.length == 0) revert InvalidCandidates();
+        if (_candidates.length < 2) revert InvalidCandidates();
         if (_startTime >= _endTime) revert InvalidTime();
+        if (bytes(_title).length == 0 || _startTime < block.timestamp) revert InvalidCredintials();
+
+        for (uint256 i = 0; i < _candidates.length; i++) {
+            if (bytes(_candidates[i]).length == 0) revert InvalidCredintials();
+        }
 
         uint256 pollId = pollCount++;
         Poll storage p = polls[pollId];
@@ -183,9 +191,13 @@ contract IRVVoting is AutomationCompatibleInterface {
         return pollId;
     }
 
-    function _addVoters(uint256 pollId, address[] memory voters) internal {
+    function _addVoters(uint256 pollId, address[] memory voters) internal pollExists(pollId) {
         for (uint256 i = 0; i < voters.length; i++) {
-            isAllowedVoter[pollId][voters[i]] = true;
+            address voter = voters[i];
+            if (!isAllowedVoter[pollId][voter]) {
+                isAllowedVoter[pollId][voter] = true;
+                allowedVotersList[pollId].push(voter);
+            }
         }
     }
 
@@ -201,7 +213,8 @@ contract IRVVoting is AutomationCompatibleInterface {
     }
 
     function deletePoll(uint256 pollId) external pollExists(pollId) {
-        if (msg.sender != pollOrganization[pollId]) revert NotOrg();
+        if (msg.sender != pollOrganization[pollId] && !isAdmin[msg.sender] && msg.sender != owner)
+            revert NotOrg();
         if (_updateState(pollId) != PollState.Created) revert AccessDenied();
 
         uint256[] storage orgPolls = pollsByOrg[pollOrganization[pollId]];
@@ -272,6 +285,7 @@ contract IRVVoting is AutomationCompatibleInterface {
         for (uint256 i = 0; i < p.auditors.length; i++) {
             if (p.auditors[i] == msg.sender) revert AccessDenied(); // already audited
         }
+        pollsAuditedBy[msg.sender].push(pollId);
         p.auditors.push(msg.sender);
     }
 
@@ -289,6 +303,7 @@ contract IRVVoting is AutomationCompatibleInterface {
         if (user == owner) return "Owner";
         if (isOrganization[user]) return "Organization";
         if (isAuditor[user]) return "Auditor";
+        if (isAdmin[user]) return "Admin";
         return "User";
     }
 
@@ -521,48 +536,6 @@ contract IRVVoting is AutomationCompatibleInterface {
         }
     }
 
-    // function getPollDetails(
-    //     uint256 pollId
-    // )
-    //     external
-    //     view
-    //     pollExists(pollId)
-    //     returns (
-    //         string memory title,
-    //         uint256 startTime,
-    //         uint256 endTime,
-    //         uint256 candidateCount,
-    //         uint256 maxChoices,
-    //         string[] memory candidateNames,
-    //         address[] memory auditors,
-    //         address creator,
-    //         VoteType voteType,
-    //         PollState currentState
-    //     )
-    // {
-    //     Poll storage p = polls[pollId];
-    //     string[] memory names = new string[](p.candidates.length);
-    //     for (uint256 i = 0; i < p.candidates.length; i++) {
-    //         names[i] = p.candidates[i];
-    //     }
-    //     auditors = new address[](p.auditors.length);
-    //     for (uint256 i = 0; i < p.auditors.length; i++) {
-    //         auditors[i] = p.auditors[i];
-    //     }
-    //     return (
-    //         p.title,
-    //         p.startTime,
-    //         p.endTime,
-    //         p.candidates.length,
-    //         p.maxChoices,
-    //         names,
-    //         pollOrganization[pollId],
-    //         p.voteType,
-    //         p.auditors,
-    //         _updateState(pollId)
-    //     );
-    // }
-
     function getPollDetails(
         uint256 pollId
     )
@@ -598,6 +571,18 @@ contract IRVVoting is AutomationCompatibleInterface {
             _updateState(pollId),
             p.finalized ? p.winnerIndex : 999
         );
+    }
+
+    function getWhitelist(
+        uint256 pollId
+    ) external view pollExists(pollId) returns (address[] memory) {
+        if (
+            msg.sender != pollOrganization[pollId] &&
+            !isAuditor[msg.sender] &&
+            !isAdmin[msg.sender] &&
+            msg.sender != owner
+        ) revert AccessDenied();
+        return allowedVotersList[pollId];
     }
 
     function hasUserVoted(

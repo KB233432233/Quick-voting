@@ -127,6 +127,29 @@ User role: Owner
 Gas used: 2313435
 Deployment successful!
 
+8-5-2026
+Deploying IRVVoting to sepolia...
+Waiting for deployment...
+Contract address: 0xe16aB1d549de07FA37F757288d63a9B1170e2e88
+User role: Owner
+Gas used: 2329511
+Deployment successful!
+
+18-5-2026
+Deploying IRVVoting to sepolia...
+Waiting for deployment...
+Contract address: 0xCCBc7610978b7514FFb37b89F1Eb3c33c89283D3
+User role: Owner
+Gas used: 2463892
+Deployment successful!
+
+18-5-2026 after validating in createpoll
+Deploying IRVVoting to sepolia...
+Waiting for deployment...
+Contract address: 0xd41921474aFfd224678f579eFFc8B34E790f5fA5
+User role: Owner
+Gas used: 2483341
+Deployment successful!
 
 
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.2",
