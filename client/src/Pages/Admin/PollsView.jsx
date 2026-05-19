@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Vote, Trash2 } from 'lucide-react';
 import Popup from '../../Components/Popup';
+import LoadingOverlay from '../../Components/LoadingOverlay';
 import { useWriteOnChain } from '../../hooks/WriteOnChain';
 import { getPollsFromChain, getPollDetailsFromChain } from '../../hooks/ReadFromChain';
 import { useWeb3Auth } from '@web3auth/modal/react';
@@ -8,6 +9,7 @@ import { useWeb3Auth } from '@web3auth/modal/react';
 const PollsView = () => {
   const [polls, setPolls] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
   const [selectedPoll, setSelectedPoll] = useState(null);
 
@@ -47,8 +49,9 @@ const PollsView = () => {
   };
 
   const confirmDelete = async () => {
-    if (selectedPoll) {
+    if (selectedPoll && !isDeleting) {
       try {
+        setIsDeleting(true);
         await deletePoll(selectedPoll);
         setPolls(polls.filter(poll => poll.id !== selectedPoll));
         setPopupOpen(false);
@@ -57,6 +60,8 @@ const PollsView = () => {
       } catch (e) {
         console.error("Failed to delete poll:", e);
         alert("Failed to delete poll on chain.");
+      } finally {
+        setIsDeleting(false);
       }
     }
   };
@@ -85,7 +90,8 @@ const PollsView = () => {
                   </div>
                   <button 
                     onClick={() => handleDeleteClick(poll.id)}
-                    className="flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-2 rounded-lg font-medium transition-colors border border-rose-200"
+                    disabled={isDeleting}
+                    className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border ${isDeleting ? 'bg-rose-50 text-rose-300 border-rose-100 cursor-not-allowed' : 'bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200'}`}
                   >
                     <Trash2 size={16} />
                     Delete Poll
@@ -106,6 +112,7 @@ const PollsView = () => {
         confirmDelete={confirmDelete}
         setPopupOpen={setPopupOpen}
       />
+      <LoadingOverlay isOpen={isDeleting} label="Deleting poll..." />
     </div>
   );
 };

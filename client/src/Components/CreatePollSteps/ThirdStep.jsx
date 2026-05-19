@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { ArrowLeft, GripVertical, Trash2, Plus, Rocket } from 'lucide-react';
+import { ArrowLeft, GripVertical, Trash2, Plus, Rocket, Loader2 } from 'lucide-react';
 
-const ThirdStep = ({ onBack, formData, setFormData, handleSubmit }) => {
+const ThirdStep = ({ onBack, formData, setFormData, handleSubmit, isSubmitting = false }) => {
   const [candidates, setCandidates] = useState(formData.candidates);
 
   const updateCandidate = (idx, value) => {
@@ -86,10 +86,19 @@ const ThirdStep = ({ onBack, formData, setFormData, handleSubmit }) => {
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
           <button 
             onClick={handleSubmit}
-            disabled={!validate()}
-            className={`w-full sm:w-auto flex items-center justify-center gap-2 ${!validate() ? 'bg-gray-400 hover:bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors`}
+            disabled={!validate() || isSubmitting}
+            className={`w-full sm:w-auto flex items-center justify-center gap-2 ${!validate() || isSubmitting ? 'bg-gray-400 hover:bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors`}
           >
-            Deploy Poll <Rocket className="w-4 h-4" />
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Deploying...
+              </>
+            ) : (
+              <>
+                Deploy Poll <Rocket className="w-4 h-4" />
+              </>
+            )}
           </button>
         </div>
       </div>

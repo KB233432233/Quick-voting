@@ -1,1050 +1,861 @@
-[{
-                                    "errorSelector": "7c9a1cf9",
-                                    "id": 74,
-                                    "name": "AlreadyVoted",
-                                    "nameLocation": "279:12:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 73,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "291:2:3"
-                                    },
-                                    "src": "273:21:3"
-                                },
-                                {
-                                    "errorSelector": "17299549",
-                                    "id": 76,
-                                    "name": "NotAllowedVoter",
-                                    "nameLocation": "305:15:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 75,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "320:2:3"
-                                    },
-                                    "src": "299:24:3"
-                                },
-                                {
-                                    "errorSelector": "8acdc765",
-                                    "id": 78,
-                                    "name": "PollDoesNotExist",
-                                    "nameLocation": "334:16:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 77,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "350:2:3"
-                                    },
-                                    "src": "328:25:3"
-                                },
-                                {
-                                    "errorSelector": "7fa01202",
-                                    "id": 80,
-                                    "name": "VotingNotStarted",
-                                    "nameLocation": "364:16:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 79,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "380:2:3"
-                                    },
-                                    "src": "358:25:3"
-                                },
-                                {
-                                    "errorSelector": "7a19ed05",
-                                    "id": 82,
-                                    "name": "VotingEnded",
-                                    "nameLocation": "394:11:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 81,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "405:2:3"
-                                    },
-                                    "src": "388:20:3"
-                                },
-                                {
-                                    "errorSelector": "5e79c2bc",
-                                    "id": 84,
-                                    "name": "VotingIsNotActive",
-                                    "nameLocation": "419:17:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 83,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "436:2:3"
-                                    },
-                                    "src": "413:26:3"
-                                },
-                                {
-                                    "errorSelector": "7f8617a2",
-                                    "id": 86,
-                                    "name": "VotingNotEnded",
-                                    "nameLocation": "450:14:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 85,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "464:2:3"
-                                    },
-                                    "src": "444:23:3"
-                                },
-                                {
-                                    "errorSelector": "109a78da",
-                                    "id": 88,
-                                    "name": "InvalidCandidates",
-                                    "nameLocation": "478:17:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 87,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "495:2:3"
-                                    },
-                                    "src": "472:26:3"
-                                },
-                                {
-                                    "errorSelector": "bc540507",
-                                    "id": 90,
-                                    "name": "InvalidRanking",
-                                    "nameLocation": "509:14:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 89,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "523:2:3"
-                                    },
-                                    "src": "503:23:3"
-                                },
-                                {
-                                    "errorSelector": "30cd7471",
-                                    "id": 92,
-                                    "name": "NotOwner",
-                                    "nameLocation": "537:8:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 91,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "545:2:3"
-                                    },
-                                    "src": "531:17:3"
-                                },
-                                {
-                                    "errorSelector": "59019d3f",
-                                    "id": 94,
-                                    "name": "NotOrg",
-                                    "nameLocation": "559:6:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 93,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "565:2:3"
-                                    },
-                                    "src": "553:15:3"
-                                },
-                                {
-                                    "errorSelector": "79e19ffe",
-                                    "id": 96,
-                                    "name": "NoWinnerFound",
-                                    "nameLocation": "579:13:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 95,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "592:2:3"
-                                    },
-                                    "src": "573:22:3"
-                                },
-                                {
-                                    "errorSelector": "4ca88867",
-                                    "id": 98,
-                                    "name": "AccessDenied",
-                                    "nameLocation": "606:12:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 97,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "618:2:3"
-                                    },
-                                    "src": "600:21:3"
-                                },
-                                {
-                                    "errorSelector": "6f7eac26",
-                                    "id": 100,
-                                    "name": "InvalidTime",
-                                    "nameLocation": "632:11:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 99,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "643:2:3"
-                                    },
-                                    "src": "626:20:3"
-                                },
-                                {
-                                    "errorSelector": "3c8aa871",
-                                    "id": 102,
-                                    "name": "PollAlreadyFinalized",
-                                    "nameLocation": "657:20:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 101,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "677:2:3"
-                                    },
-                                    "src": "651:29:3"
-                                },
-                                {
-                                    "errorSelector": "a1f3a14b",
-                                    "id": 104,
-                                    "name": "NoVoteFound",
-                                    "nameLocation": "691:11:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 103,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "702:2:3"
-                                    },
-                                    "src": "685:20:3"
-                                },
-                                {
-                                    "errorSelector": "8a6e0a44",
-                                    "id": 106,
-                                    "name": "InvalidMaxChoices",
-                                    "nameLocation": "716:17:3",
-                                    "nodeType": "ErrorDefinition",
-                                    "parameters": {
-                                        "id": 105,
-                                        "nodeType": "ParameterList",
-                                        "parameters": [],
-                                        "src": "733:2:3"
-                                    },
-                                    "src": "710:26:3"
-                                },
-                        {
-                            "inputs": [],
-                            "stateMutability": "nonpayable",
-                            "type": "constructor"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "AccessDenied",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "AlreadyVoted",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "InvalidCandidates",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "InvalidMaxChoices",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "InvalidRanking",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "InvalidTime",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "NoVoteFound",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "NoWinnerFound",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "NotAllowedVoter",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "NotOrg",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "NotOwner",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "PollAlreadyFinalized",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "PollDoesNotExist",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "VotingEnded",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "VotingIsNotActive",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "VotingNotEnded",
-                            "type": "error"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "VotingNotStarted",
-                            "type": "error"
-                        },
-                        {
-                            "anonymous": false,
-                            "inputs": [
-                                {
-                                    "indexed": true,
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "indexed": true,
-                                    "internalType": "address",
-                                    "name": "creator",
-                                    "type": "address"
-                                },
-                                {
-                                    "indexed": false,
-                                    "internalType": "string",
-                                    "name": "title",
-                                    "type": "string"
-                                },
-                                {
-                                    "indexed": false,
-                                    "internalType": "string[]",
-                                    "name": "candidateNames",
-                                    "type": "string[]"
-                                },
-                                {
-                                    "indexed": false,
-                                    "internalType": "uint256",
-                                    "name": "startTime",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "indexed": false,
-                                    "internalType": "uint256",
-                                    "name": "endTime",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "name": "PollCreated",
-                            "type": "event"
-                        },
-                        {
-                            "anonymous": false,
-                            "inputs": [
-                                {
-                                    "indexed": true,
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "indexed": false,
-                                    "internalType": "uint256",
-                                    "name": "winnerIndex",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "name": "PollFinalized",
-                            "type": "event"
-                        },
-                        {
-                            "anonymous": false,
-                            "inputs": [
-                                {
-                                    "indexed": true,
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "indexed": false,
-                                    "internalType": "uint256",
-                                    "name": "startTime",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "name": "PollStarted",
-                            "type": "event"
-                        },
-                        {
-                            "anonymous": false,
-                            "inputs": [
-                                {
-                                    "indexed": true,
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "indexed": false,
-                                    "internalType": "uint256",
-                                    "name": "round",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "indexed": false,
-                                    "internalType": "uint256[]",
-                                    "name": "voteCounts",
-                                    "type": "uint256[]"
-                                }
-                            ],
-                            "name": "RoundTally",
-                            "type": "event"
-                        },
-                        {
-                            "anonymous": false,
-                            "inputs": [
-                                {
-                                    "indexed": true,
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "indexed": true,
-                                    "internalType": "address",
-                                    "name": "voter",
-                                    "type": "address"
-                                },
-                                {
-                                    "indexed": false,
-                                    "internalType": "uint256",
-                                    "name": "timestamp",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "name": "VoteCast",
-                            "type": "event"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "address",
-                                    "name": "user",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "addAdmin",
-                            "outputs": [],
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "address",
-                                    "name": "user",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "addAuditor",
-                            "outputs": [],
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "address",
-                                    "name": "user",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "addOrganization",
-                            "outputs": [],
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "internalType": "address[]",
-                                    "name": "newVoters",
-                                    "type": "address[]"
-                                }
-                            ],
-                            "name": "addVotersToWhitelist",
-                            "outputs": [],
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "name": "audit",
-                            "outputs": [],
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "bytes",
-                                    "name": "",
-                                    "type": "bytes"
-                                }
-                            ],
-                            "name": "checkUpkeep",
-                            "outputs": [
-                                {
-                                    "internalType": "bool",
-                                    "name": "upkeepNeeded",
-                                    "type": "bool"
-                                },
-                                {
-                                    "internalType": "bytes",
-                                    "name": "performData",
-                                    "type": "bytes"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "name": "computeWinner",
-                            "outputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "string",
-                                    "name": "_title",
-                                    "type": "string"
-                                },
-                                {
-                                    "internalType": "address[]",
-                                    "name": "_voters",
-                                    "type": "address[]"
-                                },
-                                {
-                                    "internalType": "string[]",
-                                    "name": "_candidates",
-                                    "type": "string[]"
-                                },
-                                {
-                                    "internalType": "enum IRVVoting.VoteType",
-                                    "name": "_voteType",
-                                    "type": "uint8"
-                                },
-                                {
-                                    "internalType": "uint256",
-                                    "name": "_startTime",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "internalType": "uint256",
-                                    "name": "_endTime",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "internalType": "uint256",
-                                    "name": "_maxChoices",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "name": "createPoll",
-                            "outputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "name": "deletePoll",
-                            "outputs": [],
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "name": "finalizePoll",
-                            "outputs": [],
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "getAllPolls",
-                            "outputs": [
-                                {
-                                    "internalType": "uint256[]",
-                                    "name": "",
-                                    "type": "uint256[]"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "name": "getPollDetails",
-                            "outputs": [
-                                {
-                                    "internalType": "string",
-                                    "name": "title",
-                                    "type": "string"
-                                },
-                                {
-                                    "internalType": "uint256",
-                                    "name": "startTime",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "internalType": "uint256",
-                                    "name": "endTime",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "internalType": "uint256",
-                                    "name": "candidateCount",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "internalType": "uint256",
-                                    "name": "maxChoices",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "internalType": "string[]",
-                                    "name": "candidateNames",
-                                    "type": "string[]"
-                                },
-                                {
-                                    "internalType": "address[]",
-                                    "name": "auditors",
-                                    "type": "address[]"
-                                },
-                                {
-                                    "internalType": "address",
-                                    "name": "creator",
-                                    "type": "address"
-                                },
-                                {
-                                    "internalType": "enum IRVVoting.VoteType",
-                                    "name": "voteType",
-                                    "type": "uint8"
-                                },
-                                {
-                                    "internalType": "enum IRVVoting.PollState",
-                                    "name": "currentState",
-                                    "type": "uint8"
-                                },
-                                {
-                                    "internalType": "uint256",
-                                    "name": "winnerIndex",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "address",
-                                    "name": "org",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "getPollsByOrg",
-                            "outputs": [
-                                {
-                                    "internalType": "uint256[]",
-                                    "name": "",
-                                    "type": "uint256[]"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "address",
-                                    "name": "user",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "getUserRole",
-                            "outputs": [
-                                {
-                                    "internalType": "string",
-                                    "name": "",
-                                    "type": "string"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "name": "getVotes",
-                            "outputs": [
-                                {
-                                    "internalType": "uint256[][]",
-                                    "name": "",
-                                    "type": "uint256[][]"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "internalType": "address",
-                                    "name": "user",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "hasUserVoted",
-                            "outputs": [
-                                {
-                                    "internalType": "bool",
-                                    "name": "",
-                                    "type": "bool"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "internalType": "address",
-                                    "name": "",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "hasVoted",
-                            "outputs": [
-                                {
-                                    "internalType": "bool",
-                                    "name": "",
-                                    "type": "bool"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "address",
-                                    "name": "",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "isAdmin",
-                            "outputs": [
-                                {
-                                    "internalType": "bool",
-                                    "name": "",
-                                    "type": "bool"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "internalType": "address",
-                                    "name": "",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "isAllowedVoter",
-                            "outputs": [
-                                {
-                                    "internalType": "bool",
-                                    "name": "",
-                                    "type": "bool"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "address",
-                                    "name": "",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "isAuditor",
-                            "outputs": [
-                                {
-                                    "internalType": "bool",
-                                    "name": "",
-                                    "type": "bool"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "address",
-                                    "name": "",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "isOrganization",
-                            "outputs": [
-                                {
-                                    "internalType": "bool",
-                                    "name": "",
-                                    "type": "bool"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "owner",
-                            "outputs": [
-                                {
-                                    "internalType": "address",
-                                    "name": "",
-                                    "type": "address"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "bytes",
-                                    "name": "performData",
-                                    "type": "bytes"
-                                }
-                            ],
-                            "name": "performUpkeep",
-                            "outputs": [],
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [],
-                            "name": "pollCount",
-                            "outputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "name": "pollOrganization",
-                            "outputs": [
-                                {
-                                    "internalType": "address",
-                                    "name": "",
-                                    "type": "address"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "",
-                                    "type": "uint256"
-                                }
-                            ],
-                            "name": "pollStarted",
-                            "outputs": [
-                                {
-                                    "internalType": "bool",
-                                    "name": "",
-                                    "type": "bool"
-                                }
-                            ],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "address",
-                                    "name": "user",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "removeAdmin",
-                            "outputs": [],
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "address",
-                                    "name": "user",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "removeAuditor",
-                            "outputs": [],
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "address",
-                                    "name": "user",
-                                    "type": "address"
-                                }
-                            ],
-                            "name": "removeOrganization",
-                            "outputs": [],
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        },
-                        {
-                            "inputs": [
-                                {
-                                    "internalType": "uint256",
-                                    "name": "pollId",
-                                    "type": "uint256"
-                                },
-                                {
-                                    "internalType": "uint256[]",
-                                    "name": "ranking",
-                                    "type": "uint256[]"
-                                }
-                            ],
-                            "name": "vote",
-                            "outputs": [],
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        }
-                    ]
+ [
+        {
+            "inputs": [],
+            "stateMutability": "nonpayable",
+            "type": "constructor"
+        },
+        {
+            "inputs": [],
+            "name": "AccessDenied",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "AlreadyVoted",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "InvalidCandidates",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "InvalidCredintials",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "InvalidMaxChoices",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "InvalidRanking",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "InvalidTime",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "NoVoteFound",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "NoWinnerFound",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "NotAllowedVoter",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "NotOrg",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "NotOwner",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "PollAlreadyFinalized",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "PollDoesNotExist",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "VotingEnded",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "VotingIsNotActive",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "VotingNotEnded",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "VotingNotStarted",
+            "type": "error"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "creator",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "string",
+                    "name": "title",
+                    "type": "string"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "string[]",
+                    "name": "candidateNames",
+                    "type": "string[]"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "startTime",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "endTime",
+                    "type": "uint256"
+                }
+            ],
+            "name": "PollCreated",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "winnerIndex",
+                    "type": "uint256"
+                }
+            ],
+            "name": "PollFinalized",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "startTime",
+                    "type": "uint256"
+                }
+            ],
+            "name": "PollStarted",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "round",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256[]",
+                    "name": "voteCounts",
+                    "type": "uint256[]"
+                }
+            ],
+            "name": "RoundTally",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "voter",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "timestamp",
+                    "type": "uint256"
+                }
+            ],
+            "name": "VoteCast",
+            "type": "event"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "addAdmin",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "addAuditor",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "addOrganization",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address[]",
+                    "name": "newVoters",
+                    "type": "address[]"
+                }
+            ],
+            "name": "addVotersToWhitelist",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "allowedVotersList",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "audit",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes",
+                    "name": "",
+                    "type": "bytes"
+                }
+            ],
+            "name": "checkUpkeep",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "upkeepNeeded",
+                    "type": "bool"
+                },
+                {
+                    "internalType": "bytes",
+                    "name": "performData",
+                    "type": "bytes"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "computeWinner",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "_title",
+                    "type": "string"
+                },
+                {
+                    "internalType": "address[]",
+                    "name": "_voters",
+                    "type": "address[]"
+                },
+                {
+                    "internalType": "string[]",
+                    "name": "_candidates",
+                    "type": "string[]"
+                },
+                {
+                    "internalType": "enum IRVVoting.VoteType",
+                    "name": "_voteType",
+                    "type": "uint8"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_startTime",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_endTime",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_maxChoices",
+                    "type": "uint256"
+                }
+            ],
+            "name": "createPoll",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "deletePoll",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "finalizePoll",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getAllPolls",
+            "outputs": [
+                {
+                    "internalType": "uint256[]",
+                    "name": "",
+                    "type": "uint256[]"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getPollDetails",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "title",
+                    "type": "string"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "startTime",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "endTime",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "candidateCount",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "maxChoices",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "string[]",
+                    "name": "candidateNames",
+                    "type": "string[]"
+                },
+                {
+                    "internalType": "address[]",
+                    "name": "auditors",
+                    "type": "address[]"
+                },
+                {
+                    "internalType": "address",
+                    "name": "creator",
+                    "type": "address"
+                },
+                {
+                    "internalType": "enum IRVVoting.VoteType",
+                    "name": "voteType",
+                    "type": "uint8"
+                },
+                {
+                    "internalType": "enum IRVVoting.PollState",
+                    "name": "currentState",
+                    "type": "uint8"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "winnerIndex",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "org",
+                    "type": "address"
+                }
+            ],
+            "name": "getPollsByOrg",
+            "outputs": [
+                {
+                    "internalType": "uint256[]",
+                    "name": "",
+                    "type": "uint256[]"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "getUserRole",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getVotes",
+            "outputs": [
+                {
+                    "internalType": "uint256[][]",
+                    "name": "",
+                    "type": "uint256[][]"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getWhitelist",
+            "outputs": [
+                {
+                    "internalType": "address[]",
+                    "name": "",
+                    "type": "address[]"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "hasUserVoted",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "hasVoted",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "isAdmin",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "isAllowedVoter",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "isAuditor",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "isOrganization",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "owner",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes",
+                    "name": "performData",
+                    "type": "bytes"
+                }
+            ],
+            "name": "performUpkeep",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "pollCount",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "pollOrganization",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "pollStarted",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "removeAdmin",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "removeAuditor",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "removeOrganization",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "pollId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256[]",
+                    "name": "ranking",
+                    "type": "uint256[]"
+                }
+            ],
+            "name": "vote",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+]

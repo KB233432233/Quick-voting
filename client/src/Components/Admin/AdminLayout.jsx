@@ -56,12 +56,6 @@ const AdminLayout = ({ children, userRole = "All" }) => {
               <span className="text-xs font-medium text-green-700">All Systems Operational</span>
             </div>
           </div>
-
-          <div className="flex items-center gap-4">
-            <Link to={'/profile'} className="flex items-center gap-2 hover:bg-slate-50 p-1.5 rounded-lg transition">
-              <img src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff" alt="User" className="w-7 h-7 rounded-full" />
-            </Link>
-          </div>
         </header>
 
         <div className="flex-1 overflow-auto p-6 md:p-8">

@@ -9,7 +9,7 @@ const CONTRACT_IFACE = new ethers.Interface(validAbi);
 
 // Map custom ABI error names to human-readable messages
 const getErrorMessage = (e) => {
-    let errorName = e.reason || e.message || "Unknown error";
+  let errorName = e.reason || e.message || "Unknown error";
     
     // Function to parse the data recursively
     const parseErrorData = (data) => {
@@ -43,10 +43,22 @@ const getErrorMessage = (e) => {
         }
     }
 
+    const normalizeErrorName = (name) => {
+      if (!name || typeof name !== "string") return name;
+
+      // Handle cases like "execution reverted: AccessDenied" or "revert AccessDenied"
+      const byColon = name.split(":").pop().trim();
+      const bySpace = byColon.split(" ").pop().trim();
+      const match = bySpace.match(/^[A-Za-z0-9_]+$/);
+
+      return match ? bySpace : byColon;
+    };
+
     const messages = {
         "AccessDenied": "You do not have permission to perform this action.",
         "AlreadyVoted": "You have already cast your vote for this poll.",
         "InvalidCandidates": "The list of candidates provided is invalid.",
+        "InvalidCredintials": "Invalid credentials provided.",
         "InvalidMaxChoices": "The maximum number of choices is invalid.",
         "InvalidRanking": "The provided candidate ranking is invalid.",
         "InvalidTime": "The specified timeline is invalid.",
@@ -63,7 +75,8 @@ const getErrorMessage = (e) => {
         "VotingNotStarted": "Voting has not started yet."
     };
 
-    return messages[errorName] || errorName || "An unknown blockchain error occurred.";
+    const normalizedName = normalizeErrorName(errorName);
+    return messages[normalizedName] || messages[errorName] || errorName || "An unknown blockchain error occurred.";
 };
 
 // Public RPC for reading without a wallet

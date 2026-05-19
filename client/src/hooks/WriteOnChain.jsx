@@ -51,10 +51,22 @@ const getErrorMessage = (e) => {
         }
     }
 
+    const normalizeErrorName = (name) => {
+        if (!name || typeof name !== "string") return name;
+
+        // Handle cases like "execution reverted: AccessDenied" or "revert AccessDenied"
+        const byColon = name.split(":").pop().trim();
+        const bySpace = byColon.split(" ").pop().trim();
+        const match = bySpace.match(/^[A-Za-z0-9_]+$/);
+
+        return match ? bySpace : byColon;
+    };
+
     const messages = {
         "AccessDenied": "You do not have permission to perform this action.",
         "AlreadyVoted": "You have already cast your vote for this poll.",
         "InvalidCandidates": "The list of candidates provided is invalid.",
+        "InvalidCredintials": "Invalid credentials provided.",
         "InvalidMaxChoices": "The maximum number of choices is invalid.",
         "InvalidRanking": "The provided candidate ranking is invalid.",
         "InvalidTime": "The specified timeline is invalid.",
@@ -72,7 +84,8 @@ const getErrorMessage = (e) => {
     };
 
     // Return the mapped message if it exists, otherwise provide a fallback
-    return messages[errorName] || errorName || "An unknown blockchain error occurred.";
+    const normalizedName = normalizeErrorName(errorName);
+    return messages[normalizedName] || messages[errorName] || errorName || "An unknown blockchain error occurred.";
 };
 
 export const useWriteOnChain = () => {

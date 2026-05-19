@@ -1,19 +1,21 @@
 import { Link } from "react-router";
-// import { useWeb3 } from "../context/Web3Context";
-import { useAccount } from 'wagmi';
+import { useWeb3Auth } from '@web3auth/modal/react';
 import { useRole } from '../context/RoleContext';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
 const Navbar = () => {
-    // const { account } = useWeb3();
-    const { address: account } = useAccount();
-    const { userRole } = useRole();
+    const { isConnected } = useWeb3Auth();
+    const { userRole, userAddress } = useRole();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     
-    const formatAddress = (addr) => {
-        if (!addr) return "Connect Wallet";
-        return 'Profile';
+    // Determine login status: must be connected, AND role must have finished loading, AND role is not Guest
+    const isLoggedIn = isConnected && userRole !== null && userRole !== 'Guest';
+    
+    // We can also display part of the address or just 'Profile'
+    const formatAddress = (loggedIn) => {
+        if (!loggedIn) return "Connect Wallet";
+        return userAddress ? `Profile (${userAddress.slice(0, 4)}...${userAddress.slice(-4)})` : 'Profile';
     };
 
     return (
@@ -32,7 +34,7 @@ const Navbar = () => {
                 <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
                     <Link to="/pollList" className="hover:text-slate-900">Polls</Link>
                     
-                    {userRole === 'Owner' && (
+                    {(userRole === 'Owner' || userRole === 'Admin')&& (
                         <Link to="/admin-v2" className="hover:text-slate-900 border-l border-slate-300 pl-6">Admin Panel</Link>
                     )}
                     
@@ -44,12 +46,12 @@ const Navbar = () => {
                         <Link to="/auditorDashboard" className="hover:text-slate-900">Auditor Dashboard</Link>
                     )}
 
-                    {(!userRole || (userRole !== 'Organization' && userRole !== 'Owner')) && (
-                        <Link to="/orgRegister" className="hover:text-slate-900">Apply as Org</Link>
+                    {((!userRole || (userRole !== 'Organization' && userRole !== 'Owner' && userRole !== 'Admin')) && isLoggedIn) && (
+                        <Link to="/orgRegister" className="hover:text-slate-900 border-l border-slate-300 pl-6">Apply as Org</Link>
                     )}
 
-                    <Link to={account ? "/profile" : "/signup"} className="flex items-center gap-2 cursor-pointer bg-[#1D58E9] hover:bg-[#1546C6] text-white px-3.5 py-2.5 rounded-xl text-[13px] font-semibold shadow-sm transition-colors">
-                        <span>{formatAddress(account)}</span>
+                    <Link to={isLoggedIn ? "/profile" : "/signup"} className="flex items-center gap-2 cursor-pointer bg-[#1D58E9] hover:bg-[#1546C6] text-white px-3.5 py-2.5 rounded-xl text-[13px] font-semibold shadow-sm transition-colors">
+                        <span>{formatAddress(isLoggedIn)}</span>
                     </Link>
                 </nav>
 
@@ -84,8 +86,8 @@ const Navbar = () => {
                     )}
 
                     <div className="pt-2 border-t border-slate-100 mt-2">
-                        <Link to={account ? "/profile" : "/signup"} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center gap-2 cursor-pointer bg-[#1D58E9] hover:bg-[#1546C6] text-white px-4 py-3 rounded-xl text-[14px] font-semibold shadow-sm transition-colors w-full">
-                            <span>{formatAddress(account)}</span>
+                        <Link to={isLoggedIn ? "/profile" : "/signup"} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center gap-2 cursor-pointer bg-[#1D58E9] hover:bg-[#1546C6] text-white px-4 py-3 rounded-xl text-[14px] font-semibold shadow-sm transition-colors w-full">
+                            <span>{formatAddress(isLoggedIn)}</span>
                         </Link>
                     </div>
                 </div>

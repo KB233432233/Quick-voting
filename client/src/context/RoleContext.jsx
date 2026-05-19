@@ -34,7 +34,8 @@ export const RoleProvider = ({ children }) => {
           console.log("Determined user role:", role);
         } catch (error) {
           console.error("Error fetching user role:", error);
-          setUserRole('User'); // fallback
+          setUserRole('Guest'); // fallback to Guest if we fail to get a valid user signature/address
+          setUserAddress(null);
         }
       } else {
         setUserRole('Guest'); // Not logged in
@@ -44,10 +45,6 @@ export const RoleProvider = ({ children }) => {
 
     fetchRole();
   }, [isConnected, provider]);
-
-  // useEffect(() => {
-  //   console.log("Current userRole state:", userRole);
-  // }, [userRole]);
 
   return (
     <RoleContext.Provider value={{ userRole, userAddress }}>

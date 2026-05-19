@@ -4,6 +4,7 @@ import FirstStep from '../Components/CreatePollSteps/FirstStep';
 import SecondStep from '../Components/CreatePollSteps/SecondStep';
 import ThirdStep from '../Components/CreatePollSteps/ThirdStep';
 import Popup from '../Components/Popup';
+import LoadingOverlay from '../Components/LoadingOverlay';
 import { Link } from 'react-router';
 import { useWriteOnChain } from '../hooks/WriteOnChain';
 
@@ -11,6 +12,7 @@ const CreatePoll = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupContent, setPopupContent] = useState({ title: '', message: '', isAlert: true });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleNext = () => setCurrentStep((prev) => Math.min(prev + 1, 3));
   const handleBack = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
@@ -18,22 +20,18 @@ const CreatePoll = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Map frontend data to smart contract parameters
-      // const candidateNames = formData.candidates.map(c => c.name);
-      // const candidateAddresses = formData.candidates.map(c => c.address);
-
-      
-      const voteType = formData.votingStrategy === 'Ranked Choice' ? 0 : 1; 
+      setIsSubmitting(true);
 
       const data = {
         title: formData.title,
         voters: (formData.VotersAddresses || []).map(a => a.toLowerCase()),
         candidateNames: formData.candidates,
-        voteType: voteType,
+        voteType: formData.votingStrategy === 'Single Choice' ? 0 : 1, // Assuming 0 for Single Choice and 1 for Ranked Choice
         startTime: Math.floor(new Date(formData.startDate).getTime() / 1000),
         endTime: Math.floor(new Date(formData.endDate).getTime() / 1000),
-        maxChoices: Number(formData.maxRankings)
+        maxChoices: formData.votingStrategy === 'Single Choice' ? 1 : formData.maxRankings
       }
+      console.log("Submitting poll with data:", data);
       await createNewPoll(data);
       setPopupContent({ title: 'Success', message: 'Poll created successfully!', isAlert: true });
       setPopupOpen(true);
@@ -44,6 +42,8 @@ const CreatePoll = () => {
       const errorMessage = error.message || 'There was an error creating your poll.';
       setPopupContent({ title: 'Error', message: errorMessage, isAlert: true });
       setPopupOpen(true);
+    } finally {
+      setIsSubmitting(false);
     }
   };
   const [formData, setFormData] = useState({
@@ -116,10 +116,11 @@ const CreatePoll = () => {
           message={popupContent.message}
           isAlert={popupContent.isAlert}
         />
+        <LoadingOverlay isOpen={isSubmitting} label="Deploying poll..." />
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-h-[400px]">
           {currentStep === 1 && <FirstStep formData={formData} setFormData={setData} onNext={handleNext} />}
           {currentStep === 2 && <SecondStep formData={formData} setFormData={setData} onNext={handleNext} onBack={handleBack} />}
-          {currentStep === 3 && <ThirdStep formData={formData} handleSubmit={handleSubmit} setFormData={setData} onBack={handleBack} />}
+          {currentStep === 3 && <ThirdStep formData={formData} handleSubmit={handleSubmit} setFormData={setData} onBack={handleBack} isSubmitting={isSubmitting} />}
         </form>
       </main>
     </div>

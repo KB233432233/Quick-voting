@@ -1,6 +1,6 @@
 import './App.css'
 import { Route, Routes, BrowserRouter, Navigate } from 'react-router'
-import Home from './pages/Home'
+import Home from './Pages/Home'
 import CreatePoll from './Pages/CreatePoll'
 import Layout from './Components/Layout'
 import PollList from './Pages/PollList'
@@ -17,7 +17,7 @@ import OrgRegistration from './Pages/OrgRegistration'
 import OrgDashboard from './Pages/OrgDashboard/OrgDashboard'
 import AuditorDashboard from './Pages/Auditor/AuditorDashboard'
 import ProtectedRoute from './Components/ProtectedRoute'
-import UnAuthorized from './Pages/UnAuthorized'
+import UnAuthorized from './Pages/Unauthorized'
 
 function App() {
 
@@ -37,10 +37,7 @@ function App() {
             <Route path='/poll/:id/results' element={<PollResults />} />
             <Route path='/profile' element={<Profile />} />
 
-            <Route path='/orgRegister' element={
-              <ProtectedRoute allowedRoles={['User', 'Guest']}>
-                <OrgRegistration />
-              </ProtectedRoute> } />
+            <Route path='/orgRegister' element={<OrgRegistration />} />
           
           {/* Protected Dashboard Routes */}
           <Route path='/orgDashboard' element={
@@ -57,7 +54,7 @@ function App() {
 
           {/* Protected Admin Routes */}
           <Route path='/admin-v2' element={
-            <ProtectedRoute allowedRoles={['Owner']}>
+            <ProtectedRoute allowedRoles={['Owner', 'Admin']}>
               <AdminLayout />
             </ProtectedRoute>
           }>
