@@ -69,7 +69,7 @@ const Navbar = () => {
                 <div className="absolute top-16 left-0 right-0 bg-white border-b border-slate-100 shadow-lg p-4 flex flex-col gap-4 md:hidden z-50 animate-in fade-in slide-in-from-top-4 duration-200">
                     <Link to="/pollList" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-600 hover:text-slate-900 font-medium py-2">Polls</Link>
                     
-                    {userRole === 'Owner' && (
+                    {(userRole === 'Owner' || userRole === 'Admin') && (
                         <Link to="/admin-v2" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-600 hover:text-slate-900 font-medium py-2">Admin Panel</Link>
                     )}
                     
@@ -81,7 +81,7 @@ const Navbar = () => {
                         <Link to="/auditorDashboard" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-600 hover:text-slate-900 font-medium py-2">Auditor Dashboard</Link>
                     )}
 
-                    {(!userRole || (userRole !== 'Organization' && userRole !== 'Owner')) && (
+                    {((!userRole || (userRole !== 'Organization' && userRole !== 'Owner' && userRole !== 'Admin')) && isLoggedIn) && (
                         <Link to="/orgRegister" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-600 hover:text-slate-900 font-medium py-2">Apply as Org</Link>
                     )}
 

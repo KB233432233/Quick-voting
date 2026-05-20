@@ -62,12 +62,6 @@ function AdminSideBar({sidebarOpen, setSidebarOpen ,navItems, userRole}) {
             );
           })}
         </nav>
-
-        {/* <div className="p-4 border-t border-slate-800/50 mt-auto">
-            <div className="w-10 h-10 mx-auto rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm ring-2 ring-slate-700" title={userRole}>
-              {'A'}
-            </div>
-        </div> */}
       </aside>
   )
 }

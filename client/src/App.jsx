@@ -18,6 +18,7 @@ import OrgDashboard from './Pages/OrgDashboard/OrgDashboard'
 import AuditorDashboard from './Pages/Auditor/AuditorDashboard'
 import ProtectedRoute from './Components/ProtectedRoute'
 import UnAuthorized from './Pages/Unauthorized'
+import OwnerView from './Pages/Admin/OwnerView'
 
 function App() {
 
@@ -62,6 +63,9 @@ function App() {
             <Route path="organizations" element={<OrganizationsView />} />
             <Route path="auditors" element={<AuditorsView />} />
             <Route path="polls" element={<PollsView />} />
+            <Route path="owners" element={<ProtectedRoute allowedRoles={['Admin','Owner']}>
+              <OwnerView />
+            </ProtectedRoute>} />
           </Route>
         </Route>
 

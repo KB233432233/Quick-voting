@@ -10,8 +10,11 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return <div className="min-h-screen flex items-center justify-center">Loading authentication...</div>;
   }
 
+  const normalizedRole = userRole?.toString().trim().toLowerCase();
+  const normalizedAllowedRoles = allowedRoles.map((role) => role.toLowerCase());
+
   // If the user's role isn't in the allowed list, redirect them to the home page (or a Not Authorized page)
-  if (!allowedRoles.includes(userRole)) {
+  if (!normalizedAllowedRoles.includes(normalizedRole)) {
     return <Navigate to="/Unauthorized" replace />;
   }
 

@@ -10,15 +10,19 @@ import {
 } from 'lucide-react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import AdminSideBar from './AdminSideBar';
+import { useRole } from '../../context/RoleContext';
 
-const AdminLayout = ({ children, userRole = "All" }) => {
+const AdminLayout = ({ children, userRole: userRoleProp }) => {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 640);
   const location = useLocation();
+  const { userRole: contextRole } = useRole();
+  const userRole = userRoleProp || contextRole || 'All';
 
   const navItems = [
-    { name: 'Organizations', icon: Building2, path: '/admin-v2/organizations', roles: ['All'] },
-    { name: 'Auditors', icon: ShieldCheck, path: '/admin-v2/auditors', roles: ['All'] },
-    { name: 'Manage Polls', icon: Vote, path: '/admin-v2/polls', roles: ['All'] }
+    { name: 'Organizations', icon: Building2, path: '/admin-v2/organizations', roles: ['Admin'] },
+    { name: 'Auditors', icon: ShieldCheck, path: '/admin-v2/auditors', roles: ['Admin'] },
+    { name: 'Manage Polls', icon: Vote, path: '/admin-v2/polls', roles: ['Admin'] },
+    { name: 'Owners', icon: Plus, path: '/admin-v2/owners', roles: ['Owner'] }
   ];
 
   return (
