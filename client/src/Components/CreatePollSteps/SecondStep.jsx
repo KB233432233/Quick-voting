@@ -49,6 +49,9 @@ const SecondStep = ({ onNext, onBack, formData, setFormData }) => {
                   required
                   onChange={(e) => setFormData('startDate', e)}
                   placeholderText="mm/dd/yyyy, --:-- --"
+                  showTimeSelect
+                  timeIntervals={15}
+                  dateFormat="MM/dd/yyyy h:mm aa"
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-slate-800 transition-all shadow-sm"
                 />
               </div>
@@ -63,7 +66,9 @@ const SecondStep = ({ onNext, onBack, formData, setFormData }) => {
                   required
                   onChange={(date) => setFormData('endDate', date)}
                   placeholderText="mm/dd/yyyy, --:-- --"
-                  dateFormat="MM/dd/yyyy"
+                  showTimeSelect
+                  timeIntervals={15}
+                  dateFormat="MM/dd/yyyy h:mm aa"
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-slate-800 transition-all shadow-sm"
                 />
               </div>
@@ -74,12 +79,14 @@ const SecondStep = ({ onNext, onBack, formData, setFormData }) => {
 
       <div className="px-8 py-5 border-t border-slate-100 flex justify-between bg-slate-50">
         <button
+          type="button"
           onClick={onBack}
           className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <button
+          type="button"
           onClick={onNext}
           disabled={!formData.startDate || !formData.endDate || (formData.votingStrategy === 'Ranked Choice' && !formData.maxRankings)}
           className={`flex items-center gap-2 ${!formData.startDate || !formData.endDate || (formData.votingStrategy === 'Ranked Choice' && !formData.maxRankings) ? 'bg-gray-400 hover:bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors`}

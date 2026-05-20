@@ -1,4 +1,4 @@
-import React , { useState } from 'react';
+import React,{ useState } from 'react';
 import { Check } from 'lucide-react';
 import FirstStep from '../Components/CreatePollSteps/FirstStep';
 import SecondStep from '../Components/CreatePollSteps/SecondStep';

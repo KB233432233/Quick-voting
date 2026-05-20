@@ -55,8 +55,9 @@ const ThirdStep = ({ onBack, formData, setFormData, handleSubmit, isSubmitting =
                 />
               </div>
 
-              <button 
+              <button
                 onClick={() => removeCandidate(idx)}
+                type="button"
                 className="p-2 text-slate-300 hover:text-rose-500 transition-colors shrink-0 self-end sm:self-center"
               >
                 <Trash2 className="w-5 h-5" />
@@ -66,6 +67,7 @@ const ThirdStep = ({ onBack, formData, setFormData, handleSubmit, isSubmitting =
 
           <button
             onClick={addCandidate}
+            type="button"
             className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-bold mt-4 pt-2 transition-colors">
             <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white">
               <Plus className="w-3.5 h-3.5" />
@@ -79,13 +81,14 @@ const ThirdStep = ({ onBack, formData, setFormData, handleSubmit, isSubmitting =
       <div className="px-8 py-5 border-t border-slate-100 flex items-center justify-between bg-slate-50">
         <button
           onClick={onBack}
+          type="button"
           className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
-          <button 
-            onClick={handleSubmit}
+          <button
+            type="submit"
             disabled={!validate() || isSubmitting}
             className={`w-full sm:w-auto flex items-center justify-center gap-2 ${!validate() || isSubmitting ? 'bg-gray-400 hover:bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors`}
           >

@@ -82,6 +82,11 @@ const getErrorMessage = (e) => {
 // Public RPC for reading without a wallet
 const SEPOLIA_RPC_URL = "https://sepolia.infura.io/v3/bc605433bf354b83a87269063fd5aa97";
 
+const pollIdsCache = new Map();
+const pollDetailsCache = new Map();
+
+const getProviderKey = (web3authProvider) => (web3authProvider ? "auth" : "public");
+
 const getProvider = (web3authProvider) => {
   if (web3authProvider) {
     return new ethers.BrowserProvider(web3authProvider);
@@ -90,14 +95,17 @@ const getProvider = (web3authProvider) => {
 };
 
 export const getPollsFromChain = async (web3authProvider) => {
+  const cacheKey = getProviderKey(web3authProvider);
+  if (pollIdsCache.has(cacheKey)) {
+    return pollIdsCache.get(cacheKey);
+  }
+
   const provider = getProvider(web3authProvider);
   const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
   try {
-    const totalPolls = await contract.pollCount();
     const allPollIds = await contract.getAllPolls();
-
-    console.log("Total Polls:", totalPolls.toString());
+    pollIdsCache.set(cacheKey, allPollIds);
     return allPollIds;
   } catch (error) {
     console.error( getErrorMessage(error));
@@ -106,12 +114,17 @@ export const getPollsFromChain = async (web3authProvider) => {
 };
 
 export const getPollDetailsFromChain = async (web3authProvider, pollId) => {
+  const cacheKey = `${getProviderKey(web3authProvider)}:${pollId}`;
+  if (pollDetailsCache.has(cacheKey)) {
+    return pollDetailsCache.get(cacheKey);
+  }
+
   const provider = getProvider(web3authProvider);
   const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
   try {
     const [title, startTime, endTime, candidateCount, maxChoices, candidateNames, auditors, creator, voteType, currentState, winnerIndex] = await contract.getPollDetails(pollId);
-    return {
+    const details = {
       title,
       startTime: Number(startTime),
       endTime: Number(endTime),
@@ -124,6 +137,8 @@ export const getPollDetailsFromChain = async (web3authProvider, pollId) => {
       currentState: Number(currentState),
       winnerIndex: Number(winnerIndex)
     };
+    pollDetailsCache.set(cacheKey, details);
+    return details;
   } catch (error) {
     console.error( getErrorMessage(error));
     return null;

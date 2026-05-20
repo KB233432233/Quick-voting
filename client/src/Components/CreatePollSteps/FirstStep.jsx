@@ -70,6 +70,7 @@ const FirstStep = ({ onNext, formData, setFormData }) => {
 
       <div className="px-8 py-5 border-t border-slate-100 bg-slate-50 flex justify-end">
         <button
+          type='button'
           onClick={onNext}
           disabled={!formData.title || formData.VotersAddresses.length === 0}
           className={`flex items-center gap-2 ${!formData.title || formData.VotersAddresses.length === 0 ? 'bg-gray-400 hover:bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors`}

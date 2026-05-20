@@ -11,6 +11,8 @@ const PollsView = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertContent, setAlertContent] = useState({ title: '', message: '' });
   const [selectedPoll, setSelectedPoll] = useState(null);
 
   const { provider } = useWeb3Auth();
@@ -56,10 +58,12 @@ const PollsView = () => {
         setPolls(polls.filter(poll => poll.id !== selectedPoll));
         setPopupOpen(false);
         setSelectedPoll(null);
-        alert("Poll deleted successfully.");
+        setAlertContent({ title: 'Success', message: 'Poll deleted successfully.' });
+        setAlertOpen(true);
       } catch (e) {
         console.error("Failed to delete poll:", e);
-        alert("Failed to delete poll on chain.");
+        setAlertContent({ title: 'Error', message: 'Failed to delete poll on chain.' });
+        setAlertOpen(true);
       } finally {
         setIsDeleting(false);
       }
@@ -111,6 +115,13 @@ const PollsView = () => {
         action="Delete Poll"
         confirmDelete={confirmDelete}
         setPopupOpen={setPopupOpen}
+      />
+      <Popup
+        isOpen={alertOpen}
+        onClose={() => setAlertOpen(false)}
+        title={alertContent.title}
+        message={alertContent.message}
+        isAlert
       />
       <LoadingOverlay isOpen={isDeleting} label="Deleting poll..." />
     </div>
