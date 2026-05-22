@@ -30,7 +30,7 @@ const PollResults = () => {
       try {
         const details = await getPollDetailsFromChain(provider, pollId);
         const votesMatrix = await getPollVotes(provider, pollId);
-        const winnerIndex = await getPollWinner(provider, pollId);
+        const winnerIndex = details ? details.winnerIndex : null;
 
         if (details) {
           // In IRV, the last array represents the final round tally
@@ -106,7 +106,17 @@ const PollResults = () => {
             <p className="text-slate-500 text-base max-w-2xl leading-relaxed mb-8">
               Vote breakdown and final verification details retrieved securely from the blockchain.
             </p>
+
+           <div className="my-6">
+             {winner && (
+               <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-emerald-800 shadow-sm">
+                 <Check className="w-4 h-4 text-emerald-600" />
+                 <p className="text-lg font-bold">Winner: {winner}</p>
+               </div>
+             )}
+           </div>
           </div>
+
 
           <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-sm font-bold border border-emerald-100 shadow-sm shrink-0 h-fit">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Final Results
@@ -150,19 +160,6 @@ const PollResults = () => {
 
             {/* Proof Card */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-              {/* <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <h3 className="font-bold text-slate-900">Proof Verified</h3>
-              </div>
-
-              <div className="flex items-start gap-2 mb-6">
-                <Check className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-                <p className="text-sm text-slate-700 leading-snug">
-                  Zero-knowledge proof verification successful.
-                </p>
-              </div> */}
 
               <div className=" pt-3 space-y-4">
                 <div>

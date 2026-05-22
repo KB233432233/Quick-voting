@@ -42,7 +42,7 @@ const Navbar = () => {
                         <Link to="/orgDashboard" className="hover:text-slate-900">Org Dashboard</Link>
                     )}
                     
-                    {(userRole === 'Auditor') && (
+                    {(userRole === 'Auditor' ) && (
                         <Link to="/auditorDashboard" className="hover:text-slate-900">Auditor Dashboard</Link>
                     )}
 
@@ -81,7 +81,7 @@ const Navbar = () => {
                         <Link to="/auditorDashboard" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-600 hover:text-slate-900 font-medium py-2">Auditor Dashboard</Link>
                     )}
 
-                    {((!userRole || (userRole !== 'Organization' && userRole !== 'Owner' && userRole !== 'Admin')) && isLoggedIn) && (
+                    {((!userRole || (userRole !== 'Organization' && userRole !== 'Owner' )) && isLoggedIn) && (
                         <Link to="/orgRegister" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-600 hover:text-slate-900 font-medium py-2">Apply as Org</Link>
                     )}
 

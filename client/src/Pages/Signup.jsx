@@ -9,8 +9,13 @@ function Signup() {
   return (
     <div className="min-h-screen bg-[#F4F6FB] flex flex-col items-center justify-center p-4 font-sans text-slate-800">
       <div className="flex items-center gap-3 mb-8">
-        <div className="bg-[#1D58E9] p-2.5 rounded-xl shadow-md">
-          <Vote className="text-white w-5 h-5" />
+        <div className="bg-transparent p-2.5 rounded-xl shadow-md">
+          {/* <Vote className="text-white w-5 h-5" /> */}
+          <img
+            src="/logo.png"
+            alt="QuickVote Logo"
+            className="h-8 w-8 drop-shadow-[0_4px_10px_rgba(17,24,39,0.25)]"
+          />
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-[#0B1527]">QuickVote</h1>
       </div>

@@ -19,9 +19,9 @@ const AdminLayout = ({ children, userRole: userRoleProp }) => {
   const userRole = userRoleProp || contextRole || 'All';
 
   const navItems = [
-    { name: 'Organizations', icon: Building2, path: '/admin-v2/organizations', roles: ['Admin'] },
-    { name: 'Auditors', icon: ShieldCheck, path: '/admin-v2/auditors', roles: ['Admin'] },
-    { name: 'Manage Polls', icon: Vote, path: '/admin-v2/polls', roles: ['Admin'] },
+    { name: 'Organizations', icon: Building2, path: '/admin-v2/organizations', roles: ['Admin','Owner'] },
+    { name: 'Auditors', icon: ShieldCheck, path: '/admin-v2/auditors', roles: ['Admin','Owner'] },
+    { name: 'Manage Polls', icon: Vote, path: '/admin-v2/polls', roles: ['Admin','Owner'] },
     { name: 'Owners', icon: Plus, path: '/admin-v2/owners', roles: ['Owner'] }
   ];
 

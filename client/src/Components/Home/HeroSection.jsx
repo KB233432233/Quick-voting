@@ -11,7 +11,7 @@ function HeroSection() {
             </span>
             Next-Gen Voting Protocol
           </div>
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-blue-400 to-cyan-400 pb-2 drop-shadow-sm">
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-blue-400 to-cyan-400 pb-6 drop-shadow-sm">
             Secure, Transparent <br className="hidden md:block" />
             & Lightning-Fast Voting
           </h1>
