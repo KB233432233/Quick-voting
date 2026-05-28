@@ -3,80 +3,80 @@ import { CONTRACT_ADDRESS, CONTRACT_ABI } from "../context/constants";
 
 // Extract only valid ABI fragments to prevent parsing warnings from compiler artifacts
 const validAbi = CONTRACT_ABI.filter(
-    (item) => item.type === "error" || item.type === "function" || item.type === "event" || item.type === "constructor"
+  (item) => item.type === "error" || item.type === "function" || item.type === "event" || item.type === "constructor"
 );
 const CONTRACT_IFACE = new ethers.Interface(validAbi);
 
 // Map custom ABI error names to human-readable messages
 const getErrorMessage = (e) => {
   let errorName = e.reason || e.message || "Unknown error";
-    
-    // Function to parse the data recursively
-    const parseErrorData = (data) => {
-        if (!data || typeof data !== "string") return null;
-        try {
-            const decodedError = CONTRACT_IFACE.parseError(data);
-            if (decodedError && decodedError.name) return decodedError.name;
-        } catch (err) {}
-        
-        // Fallback: Check if we have errorSelector in the AST nodes (from compiler output)
-        const hexData = data.startsWith("0x") ? data.slice(2) : data;
-        const selector = hexData.slice(0, 8);
-        const matchedError = CONTRACT_ABI.find(
-            (item) => item.errorSelector && item.errorSelector.toLowerCase() === selector.toLowerCase()
-        );
-        if (matchedError) return matchedError.name;
 
-        return null;
-    };
+  // Function to parse the data recursively
+  const parseErrorData = (data) => {
+    if (!data || typeof data !== "string") return null;
+    try {
+      const decodedError = CONTRACT_IFACE.parseError(data);
+      if (decodedError && decodedError.name) return decodedError.name;
+    } catch (err) { }
 
-    const possibleDataSources = [
-        e.data, e.error?.data, e.error?.error?.data, e.info?.error?.data,
-        e.cause?.data, e.transaction?.data, e.receipt?.data
-    ];
+    // Fallback: Check if we have errorSelector in the AST nodes (from compiler output)
+    const hexData = data.startsWith("0x") ? data.slice(2) : data;
+    const selector = hexData.slice(0, 8);
+    const matchedError = CONTRACT_ABI.find(
+      (item) => item.errorSelector && item.errorSelector.toLowerCase() === selector.toLowerCase()
+    );
+    if (matchedError) return matchedError.name;
 
-    for (const data of possibleDataSources) {
-        let name = parseErrorData(data);
-        if (name) {
-            errorName = name;
-            break;
-        }
+    return null;
+  };
+
+  const possibleDataSources = [
+    e.data, e.error?.data, e.error?.error?.data, e.info?.error?.data,
+    e.cause?.data, e.transaction?.data, e.receipt?.data
+  ];
+
+  for (const data of possibleDataSources) {
+    let name = parseErrorData(data);
+    if (name) {
+      errorName = name;
+      break;
     }
+  }
 
-    const normalizeErrorName = (name) => {
-      if (!name || typeof name !== "string") return name;
+  const normalizeErrorName = (name) => {
+    if (!name || typeof name !== "string") return name;
 
-      // Handle cases like "execution reverted: AccessDenied" or "revert AccessDenied"
-      const byColon = name.split(":").pop().trim();
-      const bySpace = byColon.split(" ").pop().trim();
-      const match = bySpace.match(/^[A-Za-z0-9_]+$/);
+    // Handle cases like "execution reverted: AccessDenied" or "revert AccessDenied"
+    const byColon = name.split(":").pop().trim();
+    const bySpace = byColon.split(" ").pop().trim();
+    const match = bySpace.match(/^[A-Za-z0-9_]+$/);
 
-      return match ? bySpace : byColon;
-    };
+    return match ? bySpace : byColon;
+  };
 
-    const messages = {
-        "AccessDenied": "You do not have permission to perform this action.",
-        "AlreadyVoted": "You have already cast your vote for this poll.",
-        "InvalidCandidates": "The list of candidates provided is invalid.",
-        "InvalidCredintials": "Invalid credentials provided.",
-        "InvalidMaxChoices": "The maximum number of choices is invalid.",
-        "InvalidRanking": "The provided candidate ranking is invalid.",
-        "InvalidTime": "The specified timeline is invalid.",
-        "NoVoteFound": "No prior vote was found.",
-        "NoWinnerFound": "Could not compute a winner.",
-        "NotAllowedVoter": "You are not an allowed voter for this poll.",
-        "NotOrg": "This action requires Organization privileges.",
-        "NotOwner": "This action requires Owner privileges.",
-        "PollAlreadyFinalized": "This poll has already been finalized.",
-        "PollDoesNotExist": "This poll does not exist.",
-        "VotingEnded": "Voting for this poll has already finished.",
-        "VotingIsNotActive": "Voting is not currently active.",
-        "VotingNotEnded": "Voting has not finished yet.",
-        "VotingNotStarted": "Voting has not started yet."
-    };
+  const messages = {
+    "AccessDenied": "You do not have permission to perform this action.",
+    "AlreadyVoted": "You have already cast your vote for this poll.",
+    "InvalidCandidates": "The list of candidates provided is invalid.",
+    "InvalidCredintials": "Invalid credentials provided.",
+    "InvalidMaxChoices": "The maximum number of choices is invalid.",
+    "InvalidRanking": "The provided candidate ranking is invalid.",
+    "InvalidTime": "The specified timeline is invalid.",
+    "NoVoteFound": "No prior vote was found.",
+    "NoWinnerFound": "Could not compute a winner.",
+    "NotAllowedVoter": "You are not an allowed voter for this poll.",
+    "NotOrg": "This action requires Organization privileges.",
+    "NotOwner": "This action requires Owner privileges.",
+    "PollAlreadyFinalized": "This poll has already been finalized.",
+    "PollDoesNotExist": "This poll does not exist.",
+    "VotingEnded": "Voting for this poll has already finished.",
+    "VotingIsNotActive": "Voting is not currently active.",
+    "VotingNotEnded": "Voting has not finished yet.",
+    "VotingNotStarted": "Voting has not started yet."
+  };
 
-    const normalizedName = normalizeErrorName(errorName);
-    return messages[normalizedName] || messages[errorName] || errorName || "An unknown blockchain error occurred.";
+  const normalizedName = normalizeErrorName(errorName);
+  return messages[normalizedName] || messages[errorName] || errorName || "An unknown blockchain error occurred.";
 };
 
 // Public RPC for reading without a wallet
@@ -108,7 +108,7 @@ export const getPollsFromChain = async (web3authProvider) => {
     pollIdsCache.set(cacheKey, allPollIds);
     return allPollIds;
   } catch (error) {
-    console.error( getErrorMessage(error));
+    console.error(getErrorMessage(error));
     return [];
   }
 };
@@ -140,7 +140,7 @@ export const getPollDetailsFromChain = async (web3authProvider, pollId) => {
     pollDetailsCache.set(cacheKey, details);
     return details;
   } catch (error) {
-    console.error( getErrorMessage(error));
+    console.error(getErrorMessage(error));
     return null;
   }
 };
@@ -154,7 +154,7 @@ export const getUserRoleFromChain = async (web3authProvider, userAddress) => {
     const role = await contract.getUserRole(userAddress);
     return role; // "Admin", "Organization", "Auditor", or "User"
   } catch (error) {
-    console.error( getErrorMessage(error));
+    console.error(getErrorMessage(error));
     return "User";
   }
 };
@@ -166,7 +166,7 @@ export const checkHasUserVoted = async (web3authProvider, pollId, userAddress) =
   try {
     return await contract.hasUserVoted(pollId, userAddress);
   } catch (error) {
-    console.error( getErrorMessage(error));
+    console.error(getErrorMessage(error));
     return false;
   }
 };
@@ -198,7 +198,7 @@ export const getPollWinner = async (web3authProvider, pollId) => {
     // Attempt to get winner from the finalization event first (publicly readable)
     const filter = contract.filters.PollFinalized(pollId);
     const events = await contract.queryFilter(filter);
-    
+
     if (events && events.length > 0) {
       return Number(events[events.length - 1].args.winnerIndex);
     }
@@ -207,21 +207,103 @@ export const getPollWinner = async (web3authProvider, pollId) => {
     const winnerIndex = await contract.computeWinner(pollId);
     return Number(winnerIndex);
   } catch (error) {
-    console.error( getErrorMessage(error));
+    console.error(getErrorMessage(error));
     return null;
+  }
+};
+
+export const getRecentEventsFromChain = async (web3authProvider) => {
+  const provider = getProvider(web3authProvider);
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+
+  const sortDescending = (events) =>
+    events
+      .slice()
+      .sort((a, b) => {
+        if (b.blockNumber !== a.blockNumber) return b.blockNumber - a.blockNumber;
+        return b.transactionIndex - a.transactionIndex;
+      })
+      .slice(0, 5);
+
+  try {
+    const [createdEvents, startedEvents, finalizedEvents] = await Promise.all([
+      contract.queryFilter(contract.filters.PollCreated()),
+      contract.queryFilter(contract.filters.PollStarted()),
+      contract.queryFilter(contract.filters.PollFinalized()),
+    ]);
+
+    const decorateEvent = async (event, baseData, extraData = {}) => {
+      const pollId = Number(event.args.pollId);
+      const details = await getPollDetailsFromChain(web3authProvider, pollId);
+      const link = details?.currentState === 3 ? `/poll/${pollId}/results` : `/poll/${pollId}`;
+
+      return {
+        pollId,
+        title: details?.title || baseData.title || `Poll #${pollId}`,
+        link,
+        ...extraData,
+      };
+    };
+
+    const pollCreated = await Promise.all(
+      sortDescending(createdEvents).map((event) =>
+        decorateEvent(
+          event,
+          { title: event.args.title },
+          {
+            creator: event.args.creator,
+            startTime: Number(event.args.startTime),
+            endTime: Number(event.args.endTime),
+          }
+        )
+      )
+    );
+
+    const pollStarted = await Promise.all(
+      sortDescending(startedEvents).map((event) =>
+        decorateEvent(event, null, {
+          startTime: Number(event.args.startTime),
+        })
+      )
+    );
+
+    const pollFinalized = await Promise.all(
+      sortDescending(finalizedEvents).map(async (event) => {
+        const winnerIndex = Number(event.args.winnerIndex);
+        const details = await getPollDetailsFromChain(web3authProvider, Number(event.args.pollId));
+        const winnerName = details?.candidateNames?.[winnerIndex] || `Candidate #${winnerIndex}`;
+        return decorateEvent(event, null, {
+          winnerIndex,
+          winnerName,
+        });
+      })
+    );
+
+    return {
+      pollCreated,
+      pollStarted,
+      pollFinalized,
+    };
+  } catch (error) {
+    console.error(getErrorMessage(error));
+    return {
+      pollCreated: [],
+      pollStarted: [],
+      pollFinalized: [],
+    };
   }
 };
 
 export const getVotesFromChain = async (web3authProvider, pollId) => {
   if (!web3authProvider) return []; // Must be logged in as Auditor/Owner
-  
+
   const provider = new ethers.BrowserProvider(web3authProvider);
   const signer = await provider.getSigner();
   const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
   try {
     const rawVotes = await contract.getVotes(pollId);
-    
+
     // Convert array of arrays logic into a cleaner structure
     const formattedVotes = rawVotes.map((ranking, index) => ({
       id: `tx-${index}`,
@@ -231,7 +313,7 @@ export const getVotesFromChain = async (web3authProvider, pollId) => {
 
     return formattedVotes;
   } catch (error) {
-    console.error( getErrorMessage(error));
+    console.error(getErrorMessage(error));
     return [];
   }
 };
@@ -245,7 +327,7 @@ export const getPollsByOrgFromChain = async (web3authProvider, orgAddress) => {
     const pollIds = await contract.getPollsByOrg(orgAddress);
     return pollIds.map(id => Number(id));
   } catch (error) {
-    console.error( getErrorMessage(error));
+    console.error(getErrorMessage(error));
     return [];
   }
 };
@@ -265,7 +347,7 @@ export const getPollVotes = async (web3authProvider, pollId) => {
     // First, attempt to get finalized tallies from events (publicly readable by anyone)
     const filter = contract.filters.RoundTally(pollId);
     const events = await contract.queryFilter(filter);
-    
+
     if (events && events.length > 0) {
       // Return the matrix of round tallies derived from events
       return events.map(e => e.args.voteCounts.map(vote => Number(vote)));
@@ -276,7 +358,7 @@ export const getPollVotes = async (web3authProvider, pollId) => {
     const rawVotes = await contract.getVotes(pollId);
     return rawVotes.map(round => round.map(vote => Number(vote)));
   } catch (error) {
-    console.error( getErrorMessage(error));
+    console.error(getErrorMessage(error));
     return [];
   }
 };

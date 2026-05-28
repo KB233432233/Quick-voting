@@ -5,6 +5,7 @@ import HeroSection from '../Components/Home/HeroSection';
 import FeaturesSection from '../Components/Home/FeaturesSection';
 import HowItWorks from '../Components/Home/HowItWorks';
 import BottomCTA from '../Components/Home/BottomCTA';
+import EventActivitySection from '../Components/Home/EventActivitySection';
 
 function Home() {
   return (
@@ -17,6 +18,8 @@ function Home() {
         <FeaturesSection />
 
         <HowItWorks />
+
+        <EventActivitySection />
 
         <BottomCTA />
 

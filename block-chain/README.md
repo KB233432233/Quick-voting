@@ -62,8 +62,7 @@ npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
 notes:
 1- off chain finalizing for gas problems
 2- make it gasless(meta tx, ERC 2771)
-3- use chainlink and upkeep to finalize automaticlly
-4- blind sig
+3- blind sig
 
 add org
 import { ethers } from "ethers";
