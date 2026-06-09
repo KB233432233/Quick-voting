@@ -150,18 +150,11 @@ User role: Owner
 Gas used: 2483341
 Deployment successful!
 
+7-6-2026
+Deploying IRVVoting to sepolia...
+Waiting for deployment...
+Contract address: 0xfa746708C5A286BEaC5249198E87B7De4f8b4fcE
+User role: Owner
+Gas used: 2490466
+Deployment successful!
 
-    "@nomicfoundation/hardhat-chai-matchers": "^2.1.2",
-    "@nomicfoundation/hardhat-ethers": "^3.1.3",
-    "@nomicfoundation/hardhat-ignition": "^3.1.0",
-    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.3",
-    "@types/chai": "^5.2.3",
-    "@types/chai-as-promised": "^8.0.2",
-    "@types/mocha": "^10.0.10",
-    "chai": "^4.5.0",
-    "ethers": "^6.16.0",
-    "forge-std": "github:foundry-rs/forge-std#v1.9.4",
-    "hardhat": "^3.2.0",
-    "hardhat-deploy": "^0.12.4",
-    "mocha": "^11.7.5",

@@ -37,7 +37,7 @@ contract IRVVoting is AutomationCompatibleInterface {
         uint256 startTime,
         uint256 endTime
     );
-    event VoteCast(uint256 indexed pollId, address indexed voter, uint256 timestamp);
+    event VoteCast(uint256 indexed pollId, uint256[] ranking, uint256 timestamp);
     event PollStarted(uint256 indexed pollId, uint256 startTime);
     event PollFinalized(uint256 indexed pollId, uint256 winnerIndex);
     event RoundTally(uint256 indexed pollId, uint256 round, uint256[] voteCounts);
@@ -68,7 +68,7 @@ contract IRVVoting is AutomationCompatibleInterface {
     mapping(uint256 => mapping(address => bool)) public isAllowedVoter;
     mapping(uint256 => address[]) public allowedVotersList;
     mapping(uint256 => mapping(address => bool)) public hasVoted;
-    mapping(uint256 => address[]) private actualVoters;
+    // mapping(uint256 => address[]) private actualVoters;
     mapping(address => bool) public isAdmin;
     mapping(address => bool) public isOrganization;
     mapping(address => bool) public isAuditor;
@@ -340,11 +340,11 @@ contract IRVVoting is AutomationCompatibleInterface {
         _validateRanking(ranking, p.candidates.length);
 
         hasVoted[pollId][msg.sender] = true;
-        actualVoters[pollId].push(msg.sender); //this is for auditing
+        // actualVoters[pollId].push(msg.sender); //this is for auditing
 
         pollBallots[pollId].push(Ballot(ranking));
 
-        emit VoteCast(pollId, msg.sender, block.timestamp);
+        emit VoteCast(pollId, ranking, block.timestamp);
     }
 
     // -------------------------
