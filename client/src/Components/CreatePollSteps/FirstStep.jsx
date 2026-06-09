@@ -72,8 +72,8 @@ const FirstStep = ({ onNext, formData, setFormData }) => {
         <button
           type='button'
           onClick={onNext}
-          disabled={!formData.title || formData.VotersAddresses.length === 0}
-          className={`flex items-center gap-2 ${!formData.title || formData.VotersAddresses.length === 0 ? 'bg-gray-400 hover:bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors`}
+          disabled={!formData.title}
+          className={`flex items-center gap-2 ${!formData.title ? 'bg-gray-400 hover:bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors`}
         >
           Next <ArrowRight className="w-4 h-4" />
         </button>

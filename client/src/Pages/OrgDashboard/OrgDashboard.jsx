@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useWeb3Auth } from '@web3auth/modal/react';
 import { useAccount } from 'wagmi';
 import { ethers } from 'ethers';
@@ -10,7 +10,8 @@ import {
   Loader2, 
   CheckCircle2, 
   Clock, 
-  BarChart2 
+  BarChart2,
+  RefreshCw
 } from 'lucide-react';
 import { getPollDetailsFromChain, getPollsByOrgFromChain } from '../../hooks/ReadFromChain';
 import { useWriteOnChain } from '../../hooks/WriteOnChain';
@@ -19,53 +20,73 @@ const OrgDashboard = () => {
   const { provider, web3auth } = useWeb3Auth();
   const [polls, setPolls] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [userAddress, setUserAddress] = useState("");
-  const { finalizePoll } = useWriteOnChain();
+  const { finalizePoll, addVotersToWhitelist } = useWriteOnChain();
+  const [whitelistModalOpen, setWhitelistModalOpen] = useState(false);
+  const [whitelistPoll, setWhitelistPoll] = useState(null);
+  const [whitelistInput, setWhitelistInput] = useState('');
+  const [whitelistFileName, setWhitelistFileName] = useState('');
+  const [whitelistError, setWhitelistError] = useState('');
+  const [isAddingWhitelist, setIsAddingWhitelist] = useState(false);
 
   const { address } = useAccount();
 
-  useEffect(() => {
-    const fetchOrgData = async () => {
-      try {
-        if (!provider && !address) {console.log("f"); return;}
-        
-        let currentAddress = address;
+  const fetchOrgData = useCallback(async (isManualRefresh = false) => {
+    try {
+      if (isManualRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setLoading(true);
+      }
 
-        if (provider && web3auth) {
-          try {
-            const userInfo = await web3auth.getUserInfo();
-          } catch (e) {
-            console.log("Could not get user info, might be external wallet");
-          }
-          const ethersProvider = new ethers.BrowserProvider(provider);
-          const signer = await ethersProvider.getSigner();
-          currentAddress = await signer.getAddress();
-        }
-        
-        if (currentAddress) {
-          setUserAddress(currentAddress);
-          
-          // 2. Fetch polls owned by this organization
-          const pollIds = await getPollsByOrgFromChain(provider, currentAddress);
-          
-          // 3. Fetch details for each poll
-          const pollDetailsPromises = pollIds.map(async (id) => {
-            const details = await getPollDetailsFromChain(provider, id);
-            return { id, ...details };
-          });
+      if (!provider && !address) {
+        console.log("f");
+        return;
+      }
+      
+      let currentAddress = address;
 
-          const orgPolls = await Promise.all(pollDetailsPromises);
-          setPolls(orgPolls);
+      if (provider && web3auth) {
+        try {
+          const userInfo = await web3auth.getUserInfo();
+        } catch (e) {
+          console.log("Could not get user info, might be external wallet");
         }
-      } catch (err) {
-        console.error("Failed to load org dashboard data:", err);
-      } finally {
+        const ethersProvider = new ethers.BrowserProvider(provider);
+        const signer = await ethersProvider.getSigner();
+        currentAddress = await signer.getAddress();
+      }
+      
+      if (currentAddress) {
+        setUserAddress(currentAddress);
+        
+        // 2. Fetch polls owned by this organization
+        const pollIds = await getPollsByOrgFromChain(provider, currentAddress);
+        
+        // 3. Fetch details for each poll
+        const pollDetailsPromises = pollIds.map(async (id) => {
+          const details = await getPollDetailsFromChain(provider, id);
+          return { id, ...details };
+        });
+
+        const orgPolls = await Promise.all(pollDetailsPromises);
+        setPolls(orgPolls);
+      }
+    } catch (err) {
+      console.error("Failed to load org dashboard data:", err);
+    } finally {
+      if (isManualRefresh) {
+        setIsRefreshing(false);
+      } else {
         setLoading(false);
       }
-    };
-
-    fetchOrgData();
+    }
   }, [provider, web3auth, address]);
+
+  useEffect(() => {
+    fetchOrgData();
+  }, [fetchOrgData]);
 
   const handleFinalize = async (pollId) => {
     try {
@@ -74,6 +95,74 @@ const OrgDashboard = () => {
       // Optionally trigger reload
     } catch(err) {
       alert("Failed to finalize poll. Make sure the end time has passed.");
+    }
+  };
+
+  const parseWhitelistInput = (rawText) => {
+    return rawText
+      .split(/[\r\n,]+/)
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0)
+      .map((item) => item.toLowerCase());
+  };
+
+  const openWhitelistModal = (poll) => {
+    setWhitelistPoll(poll);
+    setWhitelistInput('');
+    setWhitelistFileName('');
+    setWhitelistError('');
+    setWhitelistModalOpen(true);
+  };
+
+  const closeWhitelistModal = (force = false) => {
+    if (isAddingWhitelist && !force) return;
+    setWhitelistModalOpen(false);
+    setWhitelistPoll(null);
+    setWhitelistInput('');
+    setWhitelistFileName('');
+    setWhitelistError('');
+  };
+
+  const handleWhitelistFile = (file) => {
+    if (!file) return;
+    if (!(file.type === 'text/csv' || file.name.endsWith('.csv'))) {
+      setWhitelistError('Please upload a valid CSV file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const csvData = event.target.result || '';
+      setWhitelistInput(String(csvData));
+      setWhitelistFileName(file.name);
+      setWhitelistError('');
+    };
+    reader.readAsText(file);
+  };
+
+  const handleAddWhitelist = async () => {
+    if (!whitelistPoll) return;
+    const now = Math.floor(Date.now() / 1000);
+    if (now >= whitelistPoll.startTime) {
+      setWhitelistError('This poll has already started. Whitelist changes are locked.');
+      return;
+    }
+
+    const addresses = parseWhitelistInput(whitelistInput);
+    if (addresses.length === 0) {
+      setWhitelistError('Please provide at least one wallet address.');
+      return;
+    }
+
+    try {
+      setIsAddingWhitelist(true);
+      setWhitelistError('');
+      await addVotersToWhitelist(whitelistPoll.id, addresses);
+      closeWhitelistModal(true);
+    } catch (err) {
+      setWhitelistError(err?.message || 'Failed to add voters to the whitelist.');
+    } finally {
+      setIsAddingWhitelist(false);
     }
   };
 
@@ -105,13 +194,24 @@ const OrgDashboard = () => {
             Wallet: {userAddress || "Not connected"}
           </div>
         </div>
-        <Link 
-          to="/createPoll" 
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all shadow-blue-500/20"
-        >
-          <PlusCircle size={18} />
-          Create New Poll
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => fetchOrgData(true)}
+            disabled={isRefreshing}
+            className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors ${isRefreshing ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}`}
+          >
+            <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+            Refresh Polls
+          </button>
+          <Link 
+            to="/createPoll" 
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all shadow-blue-500/20"
+          >
+            <PlusCircle size={18} />
+            Create New Poll
+          </Link>
+        </div>
       </div>
 
       {/* Metrics Row */}
@@ -185,6 +285,15 @@ const OrgDashboard = () => {
                         {poll.candidateCount}
                       </td>
                       <td className="px-6 py-4 flex justify-end gap-2">
+                        {status.label === 'Upcoming' && (
+                          <button
+                            type="button"
+                            onClick={() => openWhitelistModal(poll)}
+                            className="px-3 py-2 text-xs font-semibold rounded-lg border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+                          >
+                            Add Whitelist
+                          </button>
+                        )}
                         <Link 
                           to={`/pollDetails/${poll.id}`}
                           className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
@@ -201,6 +310,83 @@ const OrgDashboard = () => {
           </div>
         )}
       </div>
+
+      {whitelistModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <h4 className="text-lg font-semibold text-slate-800">Add Whitelist</h4>
+              <button
+                type="button"
+                onClick={closeWhitelistModal}
+                className="text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="text-sm text-slate-500">
+                Poll: <span className="font-semibold text-slate-700">{whitelistPoll?.title}</span>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Upload CSV (optional)
+                </label>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={(e) => handleWhitelistFile(e.target.files?.[0])}
+                  className="w-full px-4 py-2 rounded-xl border border-slate-200 text-sm bg-white file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                />
+                {whitelistFileName && (
+                  <div className="text-[11px] text-slate-400 mt-1">Selected: {whitelistFileName}</div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Paste wallet addresses
+                </label>
+                <textarea
+                  rows={6}
+                  value={whitelistInput}
+                  onChange={(e) => setWhitelistInput(e.target.value)}
+                  placeholder="0xabc...\n0xdef... (comma or newline separated)"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm text-slate-800"
+                />
+              </div>
+
+              {whitelistError && (
+                <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                  {whitelistError}
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeWhitelistModal}
+                disabled={isAddingWhitelist}
+                className="px-4 py-2 text-sm font-semibold rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleAddWhitelist}
+                disabled={isAddingWhitelist}
+                className="px-4 py-2 text-sm font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {isAddingWhitelist ? 'Adding...' : 'Add to Whitelist'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

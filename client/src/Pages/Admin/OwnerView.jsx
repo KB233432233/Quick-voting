@@ -9,7 +9,7 @@ const STORAGE_KEY = 'quickvote.admins';
 
 const OwnerView = () => {
   const [admins, setAdmins] = useState([]);
-  const [adminName, setAdminName] = useState('');
+  // const [adminName, setAdminName] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
@@ -60,7 +60,7 @@ const OwnerView = () => {
           address: trimmedAddress
         }
       ]);
-      setAdminName('');
+      // setAdminName('');
       setWalletAddress('');
       alert('Admin added successfully!');
     } catch (e) {
@@ -102,16 +102,6 @@ const OwnerView = () => {
           Add Admin
         </h2>
         <form className="space-y-4 max-w-lg" onSubmit={handleAddAdmin}>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Admin Name</label>
-            <input
-              type="text"
-              value={adminName}
-              onChange={(e) => setAdminName(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter admin name"
-            />
-          </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Wallet Address / Public Key</label>
             <input

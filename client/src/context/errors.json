@@ -1,0 +1,254 @@
+[
+    {
+                                    "errorSelector": "7c9a1cf9",
+                                    "id": 74,
+                                    "name": "AlreadyVoted",
+                                    "nameLocation": "279:12:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 73,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "291:2:3"
+                                    },
+                                    "src": "273:21:3"
+                                },
+                                {
+                                    "errorSelector": "17299549",
+                                    "id": 76,
+                                    "name": "NotAllowedVoter",
+                                    "nameLocation": "305:15:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 75,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "320:2:3"
+                                    },
+                                    "src": "299:24:3"
+                                },
+                                {
+                                    "errorSelector": "8acdc765",
+                                    "id": 78,
+                                    "name": "PollDoesNotExist",
+                                    "nameLocation": "334:16:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 77,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "350:2:3"
+                                    },
+                                    "src": "328:25:3"
+                                },
+                                {
+                                    "errorSelector": "7fa01202",
+                                    "id": 80,
+                                    "name": "VotingNotStarted",
+                                    "nameLocation": "364:16:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 79,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "380:2:3"
+                                    },
+                                    "src": "358:25:3"
+                                },
+                                {
+                                    "errorSelector": "53241696",
+                                    "id": 82,
+                                    "name": "InvalidCredintials",
+                                    "nameLocation": "394:18:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 81,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "412:2:3"
+                                    },
+                                    "src": "388:27:3"
+                                },
+                                {
+                                    "errorSelector": "7a19ed05",
+                                    "id": 84,
+                                    "name": "VotingEnded",
+                                    "nameLocation": "426:11:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 83,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "437:2:3"
+                                    },
+                                    "src": "420:20:3"
+                                },
+                                {
+                                    "errorSelector": "5e79c2bc",
+                                    "id": 86,
+                                    "name": "VotingIsNotActive",
+                                    "nameLocation": "451:17:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 85,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "468:2:3"
+                                    },
+                                    "src": "445:26:3"
+                                },
+                                {
+                                    "errorSelector": "7f8617a2",
+                                    "id": 88,
+                                    "name": "VotingNotEnded",
+                                    "nameLocation": "482:14:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 87,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "496:2:3"
+                                    },
+                                    "src": "476:23:3"
+                                },
+                                {
+                                    "errorSelector": "109a78da",
+                                    "id": 90,
+                                    "name": "InvalidCandidates",
+                                    "nameLocation": "510:17:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 89,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "527:2:3"
+                                    },
+                                    "src": "504:26:3"
+                                },
+                                {
+                                    "errorSelector": "bc540507",
+                                    "id": 92,
+                                    "name": "InvalidRanking",
+                                    "nameLocation": "541:14:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 91,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "555:2:3"
+                                    },
+                                    "src": "535:23:3"
+                                },
+                                {
+                                    "errorSelector": "30cd7471",
+                                    "id": 94,
+                                    "name": "NotOwner",
+                                    "nameLocation": "569:8:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 93,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "577:2:3"
+                                    },
+                                    "src": "563:17:3"
+                                },
+                                {
+                                    "errorSelector": "59019d3f",
+                                    "id": 96,
+                                    "name": "NotOrg",
+                                    "nameLocation": "591:6:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 95,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "597:2:3"
+                                    },
+                                    "src": "585:15:3"
+                                },
+                                {
+                                    "errorSelector": "79e19ffe",
+                                    "id": 98,
+                                    "name": "NoWinnerFound",
+                                    "nameLocation": "611:13:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 97,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "624:2:3"
+                                    },
+                                    "src": "605:22:3"
+                                },
+                                {
+                                    "errorSelector": "4ca88867",
+                                    "id": 100,
+                                    "name": "AccessDenied",
+                                    "nameLocation": "638:12:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 99,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "650:2:3"
+                                    },
+                                    "src": "632:21:3"
+                                },
+                                {
+                                    "errorSelector": "6f7eac26",
+                                    "id": 102,
+                                    "name": "InvalidTime",
+                                    "nameLocation": "664:11:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 101,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "675:2:3"
+                                    },
+                                    "src": "658:20:3"
+                                },
+                                {
+                                    "errorSelector": "3c8aa871",
+                                    "id": 104,
+                                    "name": "PollAlreadyFinalized",
+                                    "nameLocation": "689:20:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 103,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "709:2:3"
+                                    },
+                                    "src": "683:29:3"
+                                },
+                                {
+                                    "errorSelector": "a1f3a14b",
+                                    "id": 106,
+                                    "name": "NoVoteFound",
+                                    "nameLocation": "723:11:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 105,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "734:2:3"
+                                    },
+                                    "src": "717:20:3"
+                                },
+                                {
+                                    "errorSelector": "8a6e0a44",
+                                    "id": 108,
+                                    "name": "InvalidMaxChoices",
+                                    "nameLocation": "748:17:3",
+                                    "nodeType": "ErrorDefinition",
+                                    "parameters": {
+                                        "id": 107,
+                                        "nodeType": "ParameterList",
+                                        "parameters": [],
+                                        "src": "765:2:3"
+                                    },
+                                    "src": "742:26:3"
+                                }
+]

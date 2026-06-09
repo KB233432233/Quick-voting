@@ -17,8 +17,12 @@ const CreatePoll = () => {
   const handleNext = () => setCurrentStep((prev) => Math.min(prev + 1, 3));
   const handleBack = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
   const { createNewPoll,addVotersToWhitelist,finalizePoll } = useWriteOnChain();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) {
+      return;
+    }
     try {
       setIsSubmitting(true);
 
@@ -26,12 +30,13 @@ const CreatePoll = () => {
         title: formData.title,
         voters: (formData.VotersAddresses || []).map(a => a.toLowerCase()),
         candidateNames: formData.candidates,
-        voteType: formData.votingStrategy === 'Single Choice' ? 0 : 1, // Assuming 0 for Single Choice and 1 for Ranked Choice
+        voteType: formData.votingStrategy === 'Single Choice' ? '1' : '0' , 
         startTime: Math.floor(new Date(formData.startDate).getTime() / 1000),
         endTime: Math.floor(new Date(formData.endDate).getTime() / 1000),
         maxChoices: formData.votingStrategy === 'Single Choice' ? 1 : formData.maxRankings
       }
-      console.log("Submitting poll with data:", data);
+      // console.log("Submitting poll with data:", data);
+      // return;
       await createNewPoll(data);
       setPopupContent({ title: 'Success', message: 'Poll created successfully!', isAlert: true });
       setPopupOpen(true);

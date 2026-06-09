@@ -1,91 +1,90 @@
 import { ethers } from "ethers";
 import { useWeb3Auth } from "@web3auth/modal/react";
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from "../context/constants";
+import errorDefinitions from "../context/errors.json";
 
 // Extract only valid ABI fragments to prevent parsing warnings from compiler artifacts
 const validAbi = CONTRACT_ABI.filter(
     (item) => item.type === "error" || item.type === "function" || item.type === "event" || item.type === "constructor"
 );
 const CONTRACT_IFACE = new ethers.Interface(validAbi);
+const errorSelectorMap = new Map(
+    errorDefinitions
+        .filter((item) => item && item.errorSelector && item.name)
+        .map((item) => [item.errorSelector.toLowerCase(), item.name])
+);
 
 // Map custom ABI error names to human-readable messages
 const getErrorMessage = (e) => {
-    let errorName = e.reason || e.message || "Unknown error";
-    
-    // Function to parse the data recursively
-    const parseErrorData = (data) => {
-        if (!data || typeof data !== "string") return null;
-        try {
-            const decodedError = CONTRACT_IFACE.parseError(data);
-            if (decodedError && decodedError.name) {
-                return decodedError.name;
-            }
-        } catch (err) {}
-        
-        // Fallback: Check if we have errorSelector in the AST nodes (from compiler output)
-        const hexData = data.startsWith("0x") ? data.slice(2) : data;
-        const selector = hexData.slice(0, 8);
-        const matchedError = CONTRACT_ABI.find(
-            (item) => item.errorSelector && item.errorSelector.toLowerCase() === selector.toLowerCase()
-        );
-        if (matchedError) return matchedError.name;
-
-        return null;
+    const messages = {
+        AccessDenied: "You do not have permission to perform this action.",
+        AlreadyVoted: "You have already cast your vote for this poll.",
+        InvalidCandidates: "The list of candidates provided is invalid.",
+        InvalidCredintials: "Invalid credentials provided.",
+        InvalidMaxChoices: "The maximum number of choices is invalid.",
+        InvalidRanking: "The provided candidate ranking is invalid.",
+        InvalidTime: "The specified timeline is invalid.",
+        NoVoteFound: "No prior vote was found.",
+        NoWinnerFound: "Could not compute a winner.",
+        NotAllowedVoter: "You are not an allowed voter for this poll.",
+        NotOrg: "This action requires Organization privileges.",
+        NotOwner: "This action requires Owner privileges.",
+        PollAlreadyFinalized: "This poll has already been finalized.",
+        PollDoesNotExist: "This poll does not exist.",
+        VotingEnded: "Voting for this poll has already finished.",
+        VotingIsNotActive: "Voting is not currently active.",
+        VotingNotEnded: "Voting has not finished yet.",
+        VotingNotStarted: "Voting has not started yet."
     };
 
+    const possibleMessages = [
+        e?.shortMessage,
+        e?.reason,
+        e?.message,
+        e?.error?.message,
+        e?.data?.message,
+        e?.error?.data?.message,
+        e?.info?.error?.message,
+        e?.cause?.message
+    ].filter((value) => typeof value === "string" && value.trim().length > 0);
+
+    const mergedMessage = possibleMessages.join(" ");
+    if (/\b429\b|too many requests/i.test(mergedMessage)) {
+        return "Wallet RPC is rate-limited right now (HTTP 429). Please wait 20-60 seconds and try again.";
+    }
+
     const possibleDataSources = [
-        e.data,
-        e.error?.data,
-        e.error?.error?.data,
-        e.info?.error?.data,
-        e.cause?.data,
-        e.transaction?.data,
-        e.receipt?.data
+        e?.data,
+        e?.error?.data,
+        e?.error?.error?.data,
+        e?.info?.error?.data,
+        e?.cause?.data,
+        e?.transaction?.data,
+        e?.receipt?.data
     ];
 
     for (const data of possibleDataSources) {
-        let name = parseErrorData(data);
-        if (name) {
-            errorName = name;
-            break;
+        if (typeof data !== "string" || !data.startsWith("0x")) {
+            continue;
+        }
+
+        try {
+            const decodedError = CONTRACT_IFACE.parseError(data);
+            if (decodedError?.name && messages[decodedError.name]) {
+                return messages[decodedError.name];
+            }
+        } catch {
+            // Ignore decode errors and continue with selector lookup.
+        }
+
+        const selector = data.slice(2, 10).toLowerCase();
+        const errorName = errorSelectorMap.get(selector);
+        if (errorName && messages[errorName]) {
+            return messages[errorName];
         }
     }
 
-    const normalizeErrorName = (name) => {
-        if (!name || typeof name !== "string") return name;
-
-        // Handle cases like "execution reverted: AccessDenied" or "revert AccessDenied"
-        const byColon = name.split(":").pop().trim();
-        const bySpace = byColon.split(" ").pop().trim();
-        const match = bySpace.match(/^[A-Za-z0-9_]+$/);
-
-        return match ? bySpace : byColon;
-    };
-
-    const messages = {
-        "AccessDenied": "You do not have permission to perform this action.",
-        "AlreadyVoted": "You have already cast your vote for this poll.",
-        "InvalidCandidates": "The list of candidates provided is invalid.",
-        "InvalidCredintials": "Invalid credentials provided.",
-        "InvalidMaxChoices": "The maximum number of choices is invalid.",
-        "InvalidRanking": "The provided candidate ranking is invalid.",
-        "InvalidTime": "The specified timeline is invalid.",
-        "NoVoteFound": "No prior vote was found.",
-        "NoWinnerFound": "Could not compute a winner.",
-        "NotAllowedVoter": "You are not an allowed voter for this poll.",
-        "NotOrg": "This action requires Organization privileges.",
-        "NotOwner": "This action requires Owner privileges.",
-        "PollAlreadyFinalized": "This poll has already been finalized.",
-        "PollDoesNotExist": "This poll does not exist.",
-        "VotingEnded": "Voting for this poll has already finished.",
-        "VotingIsNotActive": "Voting is not currently active.",
-        "VotingNotEnded": "Voting has not finished yet.",
-        "VotingNotStarted": "Voting has not started yet."
-    };
-
-    // Return the mapped message if it exists, otherwise provide a fallback
-    const normalizedName = normalizeErrorName(errorName);
-    return messages[normalizedName] || messages[errorName] || errorName || "An unknown blockchain error occurred.";
+    return possibleMessages[0] || "An unexpected error occurred. Please try again.";
 };
 
 export const useWriteOnChain = () => {

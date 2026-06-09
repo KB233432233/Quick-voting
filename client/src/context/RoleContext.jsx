@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useWeb3Auth } from '@web3auth/modal/react';
 import { getUserRoleFromChain } from '../hooks/ReadFromChain';
-import { ethers } from 'ethers';
 
 export const RoleContext = createContext();
 
@@ -16,9 +15,15 @@ export const RoleProvider = ({ children }) => {
     const fetchRole = async () => {
       if (isConnected && provider) {
         try {
-          const ethersProvider = new ethers.BrowserProvider(provider);
-          const signer = await ethersProvider.getSigner();
-          const address = await signer.getAddress();
+          const accounts = await provider.request({ method: 'eth_accounts' });
+          const address = accounts?.[0] || null;
+
+          if (!address) {
+            setUserRole('Guest');
+            setUserAddress(null);
+            return;
+          }
+
           setUserAddress(address);
           
           let role = await getUserRoleFromChain(provider, address);

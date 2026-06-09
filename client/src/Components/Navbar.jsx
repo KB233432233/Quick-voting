@@ -42,11 +42,11 @@ const Navbar = () => {
                         <Link to="/orgDashboard" className="hover:text-slate-900">Org Dashboard</Link>
                     )}
                     
-                    {(userRole === 'Auditor' ) && (
+                    {(userRole === 'Auditor') && (
                         <Link to="/auditorDashboard" className="hover:text-slate-900">Auditor Dashboard</Link>
                     )}
 
-                    {((!userRole || (userRole !== 'Organization' && userRole !== 'Owner' && userRole !== 'Admin')) && isLoggedIn) && (
+                    {((!userRole || (userRole !== 'Organization' && userRole !== 'Owner' && userRole !== 'Admin' && userRole !== 'Auditor')) && isLoggedIn) && (
                         <Link to="/orgRegister" className="hover:text-slate-900 border-l border-slate-300 pl-6">Apply as Org</Link>
                     )}
 

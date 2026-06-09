@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Vote, Trash2 } from 'lucide-react';
+import { Vote, Trash2, RefreshCw } from 'lucide-react';
 import Popup from '../../Components/Popup';
 import LoadingOverlay from '../../Components/LoadingOverlay';
 import { useWriteOnChain } from '../../hooks/WriteOnChain';
@@ -18,22 +18,27 @@ const PollsView = () => {
   const { provider } = useWeb3Auth();
   const { deletePoll } = useWriteOnChain();
 
-  const fetchPolls = useCallback(async () => {
+  const fetchPolls = useCallback(async (forceRefresh = false) => {
     try {
       setIsLoading(true);
-      const pollIds = await getPollsFromChain(provider);
-      
+      // Use public RPC for listing to avoid triggering Web3Auth/Infura rate limits
+      const pollIds = await getPollsFromChain(null, { forceRefresh });
       const pollsData = await Promise.all(
         pollIds.map(async (id) => {
-          const details = await getPollDetailsFromChain(provider, id);
+          const details = await getPollDetailsFromChain(null, id, { forceRefresh });
+          if (!details) return null;
           return {
             id: id.toString(),
             title: details.title,
             status: details.currentState === 0 ? 'Active' : 'Completed',
+            currentState: details.currentState,
           };
         })
       );
-      setPolls(pollsData);
+
+      // Exclude finalized/finished polls (currentState === 3)
+      const visible = pollsData.filter(Boolean).filter(p => p.currentState !== 3);
+      setPolls(visible);
     } catch (e) {
       console.error("Failed to fetch polls:", e);
     } finally {
@@ -78,6 +83,15 @@ const PollsView = () => {
             <Vote className="text-indigo-500" />
             Manage Polls
           </h2>
+          <button
+            type="button"
+            onClick={() => fetchPolls(true)}
+            disabled={isLoading}
+            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${isLoading ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}`}
+          >
+            <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+            Refresh
+          </button>
         </div>
         <div className="p-0">
           {isLoading ? (

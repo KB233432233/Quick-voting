@@ -5,6 +5,7 @@ const PollCard = ({
   status,
   title,
   description,
+  voteType,
   timeRemaining,
   imageClass,
   icon: Icon,
@@ -29,7 +30,7 @@ const PollCard = ({
           <span className="w-1.5 h-1.5 rounded-full bg-white opacity-90 animate-pulse" /> {status}
         </span>
         <span className="relative z-10 bg-[#0B1527]/80 backdrop-blur-md text-white/90 text-[11px] font-bold px-2.5 py-1 rounded-full border border-white/10">
-          Ranked Choice
+          {voteType === 0 ? "Single Choice" : "Multiple Choice"}
         </span>
 
         {Icon ? <Icon className="w-8 h-8 text-[#94A3B8] mt-4" /> : null}

@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, NavLink } from 'react-router';
-import { useWeb3Auth } from '@web3auth/modal/react';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -15,7 +14,6 @@ const COLORS = ['bg-blue-600', 'bg-blue-400', 'bg-slate-300', 'bg-emerald-400', 
 
 const PollResults = () => {
   const { id } = useParams();
-  const { provider } = useWeb3Auth();
   const pollId = Number(id);
 
   const [loading, setLoading] = useState(true);
@@ -23,16 +21,26 @@ const PollResults = () => {
   const [results, setResults] = useState([]);
   const [totalVotes, setTotalVotes] = useState(0);
   const [winner, setWinner] = useState(null);
+  const requestIdRef = useRef(0);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
+    const requestId = ++requestIdRef.current;
+    isMountedRef.current = true;
+
     const fetchResults = async () => {
+      if (!Number.isFinite(pollId)) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
-        const details = await getPollDetailsFromChain(provider, pollId);
-        const votesMatrix = await getPollVotes(provider, pollId);
+      const details = await getPollDetailsFromChain(null, pollId);
+      const votesMatrix = await getPollVotes(null, pollId);
         const winnerIndex = details ? details.winnerIndex : null;
 
-        if (details) {
+        if (details && isMountedRef.current && requestId === requestIdRef.current) {
           // In IRV, the last array represents the final round tally
           const finalRoundVotes = votesMatrix.length > 0 ? votesMatrix[votesMatrix.length - 1] : new Array(details.candidateCount).fill(0);
           
@@ -63,12 +71,18 @@ const PollResults = () => {
       } catch (err) {
         console.error("Error fetching poll results:", err);
       } finally {
-        setLoading(false);
+        if (isMountedRef.current && requestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     };
 
     fetchResults();
-  }, [provider, pollId]);
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [pollId]);
 
   if (loading || !poll) {
     return (
@@ -82,7 +96,7 @@ const PollResults = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pt-3 font-sans pb-20">
-      <main className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      <main className="max-w-275 mx-auto px-4 sm:px-6 lg:px-8 mt-8">
 
         {/* Breadcrumb & Navigation */}
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-6 uppercase tracking-wider">

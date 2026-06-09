@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useWeb3Auth } from '@web3auth/modal/react';
-import { Zap, Clock, CheckCircle2, Rocket, BarChart3 } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Zap, Clock, CheckCircle2, Rocket, BarChart3, RefreshCw } from 'lucide-react';
 import PollCard from '../Components/PollList/PollCard';
 import SectionHeader from '../Components/PollList/SectionHeader';
 import { getPollsFromChain, getPollDetailsFromChain } from '../hooks/ReadFromChain';
@@ -10,46 +9,70 @@ function PollList() {
   const [polls, setPolls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState("disconnected");
-  const { provider } = useWeb3Auth();
+  const requestIdRef = useRef(0);
+  const isMountedRef = useRef(true);
 
-  useEffect(() => {
-    const fetchAllPolls = async () => {
-      try {
-        setLoading(true);
-        setConnectionStatus("connecting");
-        
-        // Fetch all IDs using our abstracted hook
-        const allPollIds = await getPollsFromChain(provider);
-        setConnectionStatus("connected");
-        
-        // Fetch details for each ID Using our abstracted hook
-        const pollsData = await Promise.all(
-          allPollIds.map(async (id) => {
-            const details = await getPollDetailsFromChain(provider, id);
+  const fetchAllPolls = useCallback(async (forceRefresh = false) => {
+    const requestId = ++requestIdRef.current;
+
+    try {
+      setLoading(true);
+      setConnectionStatus("connecting");
+      
+      // Fetch all IDs using our abstracted hook
+      const allPollIds = await getPollsFromChain(null, { forceRefresh });
+      setConnectionStatus("connected");
+
+      const pollsData = [];
+      const batchSize = 3;
+      for (let i = 0; i < allPollIds.length; i += batchSize) {
+        const batch = allPollIds.slice(i, i + batchSize);
+        const batchResults = await Promise.all(
+          batch.map(async (id) => {
+            const details = await getPollDetailsFromChain(null, id, { forceRefresh });
+            if (!details) return null;
             return {
               id: id.toString(),
               title: details.title,
-              startTime: details.startTime * 1000, // Convert seconds to ms
+              startTime: details.startTime * 1000,
               endTime: details.endTime * 1000,
               candidateCount: details.candidateCount,
               maxChoices: details.maxChoices,
               candidateNames: details.candidateNames,
               creator: details.creator,
+              voteType: details.voteType,
             };
           })
         );
+        pollsData.push(...batchResults.filter(Boolean));
+        if (i + batchSize < allPollIds.length) {
+          await new Promise((resolve) => setTimeout(resolve, 150));
+        }
+      }
 
+      if (isMountedRef.current && requestId === requestIdRef.current) {
         setPolls(pollsData);
-      } catch (err) {
-        console.error("Failed to connect or fetch polls:", err);
+      }
+    } catch (err) {
+      console.error("Failed to connect or fetch polls:", err);
+      if (isMountedRef.current && requestId === requestIdRef.current) {
         setConnectionStatus("error");
-      } finally {
+      }
+    } finally {
+      if (isMountedRef.current && requestId === requestIdRef.current) {
         setLoading(false);
       }
-    };
+    }
+  }, []);
 
+  useEffect(() => {
+    isMountedRef.current = true;
     fetchAllPolls();
-  }, [provider]);
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [fetchAllPolls]);
 
   const now = Date.now();
   const activePolls = polls.filter(p => now >= p.startTime && now <= p.endTime);
@@ -60,12 +83,23 @@ function PollList() {
 
   return (
     <div className="min-h-screen bg-[#F4F6FB] font-sans pb-24 text-slate-800 selection:bg-[#1D58E9]/20 selection:text-[#1D58E9]">
-      <main className="max-w-[1000px] mx-auto px-6 pt-12">
-        <div className="mb-10 max-w-2xl">
-          <h1 className="text-[26px] tracking-tight font-extrabold text-[#0B1527] mb-3">Voting Rounds</h1>
-          <p className="text-[14px] text-[#64748B] leading-relaxed pr-8">
-            Participate in community decisions. Rank your preferences on active proposals or view past results.
-          </p>
+      <main className="max-w-250 mx-auto px-6 pt-12">
+        <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
+            <h1 className="text-[26px] tracking-tight font-extrabold text-[#0B1527] mb-3">Voting Rounds</h1>
+            <p className="text-[14px] text-[#64748B] leading-relaxed pr-8">
+              Participate in community decisions. Rank your preferences on active proposals or view past results.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => fetchAllPolls(true)}
+            disabled={loading}
+            className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${loading ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}`}
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh Polls
+          </button>
         </div>
 
         {/* Temporary Developer Helper */}
@@ -100,6 +134,7 @@ function PollList() {
                     id={poll.id}
                     status="active"
                     title={poll.title}
+                    voteType={poll.voteType}
                     description={`Candidates: ${poll.candidateNames.join(', ')}. Max choices: ${poll.maxChoices}`}
                     timeRemaining={`Ends ${formatDate(poll.endTime)}`}
                     imageClass="bg-[#0f172a] bg-[radial-gradient(ellipse_at_top,rgba(71,85,105,0.4),transparent)]"
@@ -122,6 +157,7 @@ function PollList() {
                     id={poll.id}
                     status="upcoming"
                     icon={Rocket}
+                    voteType={poll.voteType}
                     title={poll.title}
                     description={`Candidates: ${poll.candidateNames.join(', ')}`}
                     timeRemaining={`Starts ${formatDate(poll.startTime)}`}
@@ -144,6 +180,7 @@ function PollList() {
                     id={poll.id}
                     status="closed"
                     icon={BarChart3}
+                    voteType={poll.voteType}
                     title={poll.title}
                     description={`Candidates: ${poll.candidateNames.join(', ')}`}
                     timeRemaining={`Ended ${formatDate(poll.endTime)}`}

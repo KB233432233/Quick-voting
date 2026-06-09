@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router';
-import { useWeb3Auth } from '@web3auth/modal/react';
-import { getPollDetailsFromChain } from '../hooks/ReadFromChain';
+import { getPollDetailsFromChain, checkHasUserVoted } from '../hooks/ReadFromChain';
 import { useWriteOnChain } from '../hooks/WriteOnChain';
+import { useRole } from '../context/RoleContext';
 
 import {
   ChevronRight,
@@ -23,13 +23,14 @@ import Popup from '../Components/Popup';
 const PollDetails = () => {
   const { id } = useParams();
   const pollId = Number(id);
-  const { provider } = useWeb3Auth();
   const { voteOnPoll } = useWriteOnChain();
+  const { userRole, userAddress } = useRole();
 
   const [loading, setLoading] = useState(true);
   const [poll, setPoll] = useState(null);
   const [selected, setSelected] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false);
   
   // Popup state
   const [popupOpen, setPopupOpen] = useState(false);
@@ -39,9 +40,14 @@ const PollDetails = () => {
     const fetchPoll = async () => {
       try {
         setLoading(true);
-        const details = await getPollDetailsFromChain(provider, pollId);
+        const details = await getPollDetailsFromChain(null, pollId);
         if (details) {
           setPoll(details);
+          console.log("Fetched poll details:", details);
+        }
+        if (userAddress) {
+          const voted = await checkHasUserVoted(null, pollId, userAddress);
+          setHasVoted(voted);
         }
       } catch (err) {
         console.error("Failed to load poll:", err);
@@ -50,7 +56,7 @@ const PollDetails = () => {
       }
     };
     fetchPoll();
-  }, [provider, pollId]);
+  }, [pollId, userAddress]);
 
   // Icons and styles to assign sequentially
   const metaAssets = [
@@ -63,6 +69,18 @@ const PollDetails = () => {
   ];
 
   const handleVote = async () => {
+    if (!userRole || userRole === 'Guest') {
+      setPopupContent({ title: 'Login Required', message: 'Please log in to vote in this poll.' });
+      setPopupOpen(true);
+      return;
+    }
+
+    if (hasVoted) {
+      setPopupContent({ title: 'Already Voted', message: 'You have already cast your vote for this poll.' });
+      setPopupOpen(true);
+      return;
+    }
+
     if (selected.length === 0) {
       setPopupContent({ title: 'Wait!', message: 'Please select at least 1 candidate to vote.' });
       setPopupOpen(true);
@@ -91,6 +109,10 @@ const PollDetails = () => {
   };
 
   const toggleSelection = (id) => {
+    if (!userRole || userRole === 'Guest') {
+      return;
+    }
+
     if (selected.includes(id)) {
       setSelected(selected.filter(item => item !== id));
     } else if (poll && selected.length < poll.maxChoices) {
@@ -148,6 +170,12 @@ const PollDetails = () => {
           desc={`This poll allows a maximum of ${poll.maxChoices} choices. Please rank your preferences by clicking on the cards below. The top choice receives the highest weight.`}
         />
 
+        {userRole === 'Guest' && (
+          <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+            Login to vote in this poll.
+          </div>
+        )}
+
         <InfoBanner 
           startDate={new Date(poll.startTime * 1000).toLocaleDateString()} 
           endDate={new Date(poll.endTime * 1000).toLocaleDateString()} 
@@ -180,7 +208,7 @@ const PollDetails = () => {
       
       {/* Floating Bar with updated Vote Handler */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4 pointer-events-none">
-        <div className="bg-[#0f172a] p-4 rounded-2xl shadow-2xl flex items-center justify-between pointer-events-auto border border-white/10 relative overflow-hidden backdrop-blur-xl bg-[#0f172a]/95">
+        <div className="bg-slate-950/95 p-4 rounded-2xl shadow-2xl flex items-center justify-between pointer-events-auto border border-white/10 relative overflow-hidden backdrop-blur-xl">
           <div className="flex gap-4">
               {Array.from({ length: poll.maxChoices }).map((_, i) => (
                 <div key={i} className="flex flex-col items-center gap-1.5 w-16">
@@ -195,7 +223,7 @@ const PollDetails = () => {
 
           <button 
             onClick={handleVote}
-            disabled={selected.length === 0 || isSubmitting}
+            disabled={selected.length === 0 || isSubmitting || userRole === 'Guest'}
             className={`px-8 py-3.5 rounded-xl font-bold transition-all duration-300 flex items-center gap-2
             ${selected.length > 0 && !isSubmitting ? 'bg-white text-slate-900 hover:bg-slate-100 hover:scale-[1.02] shadow-[0_0_20px_rgba(255,255,255,0.2)]' : 'bg-slate-800 text-slate-500 cursor-not-allowed'}`}
           >

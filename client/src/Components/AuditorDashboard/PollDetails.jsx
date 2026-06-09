@@ -1,6 +1,7 @@
-import { ChevronLeft, Hash, User, Clock } from "lucide-react"
+import { ChevronLeft, Hash, User, Clock, ShieldCheck } from "lucide-react"
 
-function PollDetails({ selectedPoll, setSelectedPoll, mockVotes }) {
+function PollDetails({ selectedPoll, setSelectedPoll, mockVotes, onAudit, isAuditing }) {
+  const canAudit = selectedPoll?.rawDetails?.currentState >= 2;
   return (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <button 
@@ -16,9 +17,29 @@ function PollDetails({ selectedPoll, setSelectedPoll, mockVotes }) {
                   <h2 className="text-xl font-bold text-slate-800 tracking-tight">{selectedPoll.title}</h2>
                   <p className="text-xs text-slate-500 font-mono mt-1">Poll ID: #{selectedPoll.id}</p>
                 </div>
-                <div className="bg-emerald-50 border border-emerald-100 text-emerald-700 px-4 py-2 rounded-xl text-center">
-                  <p className="text-[10px] uppercase font-bold tracking-wider opacity-80">Total Valid Votes</p>
-                  <p className="text-2xl font-black leading-none mt-1">{selectedPoll.totalVotes}</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={onAudit}
+                    disabled={!canAudit || isAuditing}
+                    className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold uppercase tracking-wider text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    title={canAudit ? "Audit poll on-chain" : "Poll must be ended or finalized to audit"}
+                  >
+                    <ShieldCheck size={14} />
+                    {isAuditing ? "Auditing..." : "Audit Poll"}
+                  </button>
+                  <div className="bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-center">
+                    <p className="text-[10px] uppercase font-bold tracking-wider opacity-80">Whitelist Count</p>
+                    <p className="text-2xl font-black leading-none mt-1">{selectedPoll.whitelistCount ?? 0}</p>
+                  </div>
+                  <div className="bg-sky-50 border border-sky-100 text-sky-700 px-4 py-2 rounded-xl text-center">
+                    <p className="text-[10px] uppercase font-bold tracking-wider opacity-80">Voters Voted</p>
+                    <p className="text-2xl font-black leading-none mt-1">{selectedPoll.votedCount ?? 0}</p>
+                  </div>
+                  <div className="bg-emerald-50 border border-emerald-100 text-emerald-700 px-4 py-2 rounded-xl text-center">
+                    <p className="text-[10px] uppercase font-bold tracking-wider opacity-80">Total Valid Votes</p>
+                    <p className="text-2xl font-black leading-none mt-1">{selectedPoll.totalVotes}</p>
+                  </div>
                 </div>
               </div>
 
@@ -27,7 +48,6 @@ function PollDetails({ selectedPoll, setSelectedPoll, mockVotes }) {
                   <thead className="bg-white border-b border-slate-100 z-10 sticky top-0">
                     <tr className="text-xs uppercase font-bold text-slate-400 tracking-wider">
                       <th className="px-6 py-4">Transaction / Receipt ID</th>
-                      <th className="px-6 py-4">Voter Alias</th>
                       <th className="px-6 py-4">Voted For</th>
                       <th className="px-6 py-4">Timestamp</th>
                     </tr>

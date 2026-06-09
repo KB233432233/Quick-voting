@@ -94,9 +94,10 @@ const getProvider = (web3authProvider) => {
   return new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
 };
 
-export const getPollsFromChain = async (web3authProvider) => {
+export const getPollsFromChain = async (web3authProvider, options = {}) => {
+  const { forceRefresh = false } = options;
   const cacheKey = getProviderKey(web3authProvider);
-  if (pollIdsCache.has(cacheKey)) {
+  if (!forceRefresh && pollIdsCache.has(cacheKey)) {
     return pollIdsCache.get(cacheKey);
   }
 
@@ -113,9 +114,10 @@ export const getPollsFromChain = async (web3authProvider) => {
   }
 };
 
-export const getPollDetailsFromChain = async (web3authProvider, pollId) => {
+export const getPollDetailsFromChain = async (web3authProvider, pollId, options = {}) => {
+  const { forceRefresh = false } = options;
   const cacheKey = `${getProviderKey(web3authProvider)}:${pollId}`;
-  if (pollDetailsCache.has(cacheKey)) {
+  if (!forceRefresh && pollDetailsCache.has(cacheKey)) {
     return pollDetailsCache.get(cacheKey);
   }
 
@@ -160,7 +162,7 @@ export const getUserRoleFromChain = async (web3authProvider, userAddress) => {
 };
 
 export const checkHasUserVoted = async (web3authProvider, pollId, userAddress) => {
-  const provider = getProvider(web3authProvider);
+  const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
   const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
   try {
@@ -172,7 +174,7 @@ export const checkHasUserVoted = async (web3authProvider, pollId, userAddress) =
 };
 
 export const checkIsAllowedVoter = async (web3authProvider, pollId, userAddress) => {
-  const provider = getProvider(web3authProvider);
+  const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
   const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
   try {
@@ -184,15 +186,8 @@ export const checkIsAllowedVoter = async (web3authProvider, pollId, userAddress)
 };
 
 export const getPollWinner = async (web3authProvider, pollId) => {
-  let contract;
-  if (web3authProvider) {
-    const provider = new ethers.BrowserProvider(web3authProvider);
-    const signer = await provider.getSigner();
-    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-  } else {
-    const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
-    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
-  }
+  const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
   try {
     // Attempt to get winner from the finalization event first (publicly readable)
@@ -295,11 +290,8 @@ export const getRecentEventsFromChain = async (web3authProvider) => {
 };
 
 export const getVotesFromChain = async (web3authProvider, pollId) => {
-  if (!web3authProvider) return []; // Must be logged in as Auditor/Owner
-
-  const provider = new ethers.BrowserProvider(web3authProvider);
-  const signer = await provider.getSigner();
-  const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+  const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
   try {
     const rawVotes = await contract.getVotes(pollId);
@@ -318,9 +310,43 @@ export const getVotesFromChain = async (web3authProvider, pollId) => {
   }
 };
 
+export const getWhitelistFromChain = async (web3authProvider, pollId) => {
+  const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+
+  try {
+    const whitelist = await contract.getWhitelist(pollId);
+    return whitelist || [];
+  } catch (error) {
+    console.error(getErrorMessage(error));
+    return [];
+  }
+};
+
+export const getVoteCastEventsFromChain = async (web3authProvider, pollId) => {
+  const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+
+  try {
+    const filter = contract.filters.VoteCast(pollId);
+    const events = await contract.queryFilter(filter);
+
+    return events.map((event, index) => ({
+      id: event.transactionHash || `tx-${index}`,
+      voter: event.args?.voter,
+      timestamp: Number(event.args?.timestamp || 0),
+      blockNumber: event.blockNumber,
+      txIndex: event.transactionIndex
+    }));
+  } catch (error) {
+    console.error(getErrorMessage(error));
+    return [];
+  }
+};
+
 
 export const getPollsByOrgFromChain = async (web3authProvider, orgAddress) => {
-  const provider = getProvider(web3authProvider);
+  const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
   const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
   try {
@@ -333,15 +359,8 @@ export const getPollsByOrgFromChain = async (web3authProvider, orgAddress) => {
 };
 
 export const getPollVotes = async (web3authProvider, pollId) => {
-  let contract;
-  if (web3authProvider) {
-    const provider = new ethers.BrowserProvider(web3authProvider);
-    const signer = await provider.getSigner();
-    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-  } else {
-    const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
-    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
-  }
+  const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
   try {
     // First, attempt to get finalized tallies from events (publicly readable by anyone)
@@ -362,4 +381,3 @@ export const getPollVotes = async (web3authProvider, pollId) => {
     return [];
   }
 };
-
